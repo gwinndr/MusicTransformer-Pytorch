@@ -1,2 +1,4 @@
-**/3rdParty/midi_processor
+**/third_party/midi_processor
+
+**.pickle
 
