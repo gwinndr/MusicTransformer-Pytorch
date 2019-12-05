@@ -1,4 +1,6 @@
 **/third_party/midi_processor
 
 **.pickle
+**.pyc
+**/__pycache__/*
 
