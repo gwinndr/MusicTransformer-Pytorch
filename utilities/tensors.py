@@ -12,6 +12,10 @@ def as_tensor(data, dtype):
 def create_tensor(data, dtype):
     return torch.tensor(data, dtype=dtype, device=TORCH_DEVICE)
 
+# create_full_tensor
+def create_full_tensor(shape, value, dtype):
+    return torch.full(shape, value, dtype=dtype, device=TORCH_DEVICE)
+
 # create_random_tensor
 def create_random_tensor(shape, dtype):
     return torch.rand(shape, dtype=dtype, device=TORCH_DEVICE)
