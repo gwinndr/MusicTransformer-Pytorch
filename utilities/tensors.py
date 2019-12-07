@@ -5,25 +5,25 @@ from .constants import TORCH_DEVICE
 # Assortment of tensor creations functions that map to the main device
 
 # as_tensor
-def as_tensor(data, dtype):
-    return torch.as_tensor(data, dtype=dtype, device=TORCH_DEVICE)
+def as_tensor(data, dtype, device=TORCH_DEVICE):
+    return torch.as_tensor(data, dtype=dtype, device=device)
 
 # create_tensor
-def create_tensor(data, dtype):
-    return torch.tensor(data, dtype=dtype, device=TORCH_DEVICE)
+def create_tensor(data, dtype, device=TORCH_DEVICE):
+    return torch.tensor(data, dtype=dtype, device=device)
 
 # create_full_tensor
-def create_full_tensor(shape, value, dtype):
-    return torch.full(shape, value, dtype=dtype, device=TORCH_DEVICE)
+def create_full_tensor(shape, value, dtype, device=TORCH_DEVICE):
+    return torch.full(shape, value, dtype=dtype, device=device)
 
 # create_random_tensor
-def create_random_tensor(shape, dtype):
-    return torch.rand(shape, dtype=dtype, device=TORCH_DEVICE)
+def create_random_tensor(shape, dtype, device=TORCH_DEVICE):
+    return torch.rand(shape, dtype=dtype, device=device)
 
 # create_ones_tensor
-def create_ones_tensor(shape, dtype):
-    return torch.ones(shape, dtype=dtype, device=TORCH_DEVICE)
+def create_ones_tensor(shape, dtype, device=TORCH_DEVICE):
+    return torch.ones(shape, dtype=dtype, device=device)
 
 # create_zeros_tensor
-def create_zeros_tensor(shape, dtype):
-    return torch.zeros(shape, dtype=dtype, device=TORCH_DEVICE)
+def create_zeros_tensor(shape, dtype, device=TORCH_DEVICE):
+    return torch.zeros(shape, dtype=dtype, device=device)
