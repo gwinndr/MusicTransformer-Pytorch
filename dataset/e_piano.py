@@ -1,6 +1,7 @@
 import os
 import pickle
 import torch
+import torch.nn as nn
 from torch.utils.data import Dataset
 
 from utilities.constants import *
@@ -46,8 +47,20 @@ def create_epiano_datasets(dataset_root, max_seq):
     val_root = os.path.join(dataset_root, "val")
     test_root = os.path.join(dataset_root, "test")
 
-    train_dataset = EPianoDataset(train_root)
-    val_dataset = EPianoDataset(val_root)
-    test_dataset = EPianoDataset(test_root)
+    train_dataset = EPianoDataset(train_root, max_seq)
+    val_dataset = EPianoDataset(val_root, max_seq)
+    test_dataset = EPianoDataset(test_root, max_seq)
 
     return train_dataset, val_dataset, test_dataset
+
+def compute_epiano_accuracy(x, y):
+    softmax = nn.Softmax(dim=-1)
+    y_out = torch.argmax(softmax(y), dim=-1)
+
+    num_right = (y_out == x)
+    num_right = torch.sum(num_right, dim=-1).type(TORCH_FLOAT)
+
+    acc = num_right / x.shape[1]
+    acc = torch.sum(acc) / x.shape[0]
+
+    return acc

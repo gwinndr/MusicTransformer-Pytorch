@@ -11,9 +11,11 @@ def parse_args():
 
     parser.add_argument("-lr", type=float, default=None, help="Constant learn rate. Leave as None for a custom scheduler.")
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
+    # parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
     parser.add_argument("-epochs", type=int, default=100, help="Number of epochs to use")
 
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
+    # parser.add_argument("-max_sequence", type=int, default=10, help="Maximum midi sequence to consider")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
     parser.add_argument("-d_model", type=int, default=512, help="Dimension of the model (output dim of embedding layers, etc.)")

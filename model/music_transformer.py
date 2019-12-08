@@ -57,9 +57,10 @@ class MusicTransformer(nn.Module):
         x_out = x_out.permute(1,0,2)
 
         y = self.Wout(x_out)
-        y = self.softmax(y)
+        # y = self.softmax(y)
 
-        return y
+        # They are trained to predict the next note in sequence (we don't need the last one)
+        return y[:,:-1,:]
 
     # generate
     def generate(self, primer=None):
