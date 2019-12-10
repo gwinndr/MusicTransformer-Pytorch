@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import LambdaLR
 import os
 
 from utilities.argument_funcs import parse_args, print_args
@@ -40,13 +41,13 @@ def main():
         for batch_num, batch in enumerate(train_loader):
             opt.zero_grad()
 
-            batch = batch.to(TORCH_DEVICE)
+            x       = batch[0].to(TORCH_DEVICE)
+            tgt     = batch[1].to(TORCH_DEVICE)
 
-            y       = model(batch)
-            batch   = batch[:, 1:]
+            y = model(x)
 
             y   = y.permute(0,2,1) # (batch_size, classes, max_seq)
-            out = loss(y, batch)
+            out = loss(y, tgt)
 
             out.backward()
             opt.step()
@@ -66,15 +67,15 @@ def main():
             full_loss   = 0.0
             full_acc    = 0.0
             for batch in test_loader:
-                batch = batch.to(TORCH_DEVICE)
+                x       = batch[0].to(TORCH_DEVICE)
+                tgt     = batch[1].to(TORCH_DEVICE)
 
-                y       = model(batch)
-                batch   = batch[:, 1:]
+                y = model(x)
 
-                full_acc += float(compute_epiano_accuracy(batch, y))
+                full_acc += float(compute_epiano_accuracy(tgt, y))
 
                 y   = y.permute(0,2,1) # (batch_size, classes, max_seq)
-                out = loss(y, batch)
+                out = loss(y, tgt)
 
                 full_loss += float(out)
 
@@ -88,11 +89,6 @@ def main():
         path = os.path.join(args.output_dir, "epoch_" + str(epoch+1) + ".pickle")
         torch.save(model.state_dict(), path)
 
-
-    # model = MusicTransformer(args).to(TORCH_DEVICE)
-    # y = model(x)
-    # model.eval()
-    # y = model.generate()
 
 if __name__ == "__main__":
     main()

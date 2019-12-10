@@ -27,19 +27,25 @@ class EPianoDataset(Dataset):
         raw_mid     = create_tensor(pickle.load(i_stream), TORCH_LABEL_TYPE, device=TORCH_CPU)
         i_stream.close()
 
-        seq = create_full_tensor((self.max_seq, ), TOKEN_END, TORCH_LABEL_TYPE, device=TORCH_CPU)
+        x   = create_full_tensor((self.max_seq, ), TOKEN_END, TORCH_LABEL_TYPE, device=TORCH_CPU)
+        tgt = create_full_tensor((self.max_seq, ), TOKEN_END, TORCH_LABEL_TYPE, device=TORCH_CPU)
 
-        # Must always start with TOKEN_START
-        seq[0]      = TOKEN_START
-        valid_seq   = self.max_seq - 1
+        # Model expects TOKEN_START at the first position
+        # tgt will ideally have TOKEN_END at the end
+        x[0]      = TOKEN_START
 
-        if(len(raw_mid) < valid_seq):
-            seq[1:len(raw_mid)+1] = raw_mid
+        ideal_len   = self.max_seq - 1
+        raw_len     = len(raw_mid)
+
+        if(raw_len <= ideal_len):
+            x[1:raw_len+1] = raw_mid
+            tgt[:raw_len]  = raw_mid
         else:
             # TODO: Would it be better to randomly select a range?
-            seq[1:] = raw_mid[:valid_seq]
+            x[1:]               = raw_mid[:ideal_len]
+            tgt                 = raw_mid[:self.max_seq] # Overwritting TOKEN_END
 
-        return seq
+        return x, tgt
 
 # create_epiano_datasets
 def create_epiano_datasets(dataset_root, max_seq):
