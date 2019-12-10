@@ -1,14 +1,14 @@
+import os
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import LambdaLR
-import os
-
-from utilities.argument_funcs import parse_args, print_args
-from model.music_transformer import MusicTransformer
-from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 
+from utilities.lr_scheduling import LrStepTracker, get_lr
+from utilities.argument_funcs import parse_args, print_args
+from model.music_transformer import MusicTransformer
+from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
 from utilities.constants import *
 from utilities.tensors import create_random_tensor
 
@@ -27,9 +27,18 @@ def main():
 
     model = MusicTransformer(args).to(TORCH_DEVICE)
 
-    loss    = nn.CrossEntropyLoss()
-    opt     = Adam(model.parameters(), lr=0.0001, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
+    # Lr Scheduler vs static lr
+    if(args.lr is None):
+        lr = LR_DEFAULT_START
+        lr_stepper = LrStepTracker(args.d_model, SCHEDULER_WARMUP_STEPS)
+    else:
+        lr = args.lr
 
+    loss    = nn.CrossEntropyLoss()
+    opt     = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
+
+    if(args.lr is None):
+        lr_scheduler = LambdaLR(opt, lr_stepper.step)
 
     for epoch in range(args.epochs):
         print(SEPERATOR)
@@ -52,8 +61,12 @@ def main():
             out.backward()
             opt.step()
 
+            if(args.lr is None):
+                lr_scheduler.step()
+
             print(SEPERATOR)
             print("Epoch", epoch+1, " Batch", batch_num+1, "/", len(train_loader))
+            print("LR:", get_lr(opt))
             print("Loss:", float(out))
             print(SEPERATOR)
             print("")
