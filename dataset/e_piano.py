@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 from utilities.constants import *
 from utilities.tensors import create_tensor, create_full_tensor
 
-SEQUENCE_START = -1
+SEQUENCE_START = 0
 
 # EPianoDataset
 class EPianoDataset(Dataset):
@@ -28,48 +28,40 @@ class EPianoDataset(Dataset):
     def __getitem__(self, idx):
         # All data on cpu to allow for the Dataloader to multithread
         i_stream    = open(self.data_files[idx], "rb")
+        # return pickle.load(i_stream), None
         raw_mid     = create_tensor(pickle.load(i_stream), TORCH_LABEL_TYPE, device=TORCH_CPU)
         i_stream.close()
 
-        x   = create_full_tensor((self.max_seq, ), TOKEN_END, TORCH_LABEL_TYPE, device=TORCH_CPU)
-        tgt = create_full_tensor((self.max_seq, ), TOKEN_END, TORCH_LABEL_TYPE, device=TORCH_CPU)
+        x   = create_full_tensor((self.max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
+        tgt = create_full_tensor((self.max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
 
-        # Model expects TOKEN_START at the first position
-        # tgt will ideally have TOKEN_END at the end
-        x[0]      = TOKEN_START
-
-        ideal_len   = self.max_seq - 1
         raw_len     = len(raw_mid)
+        full_seq    = self.max_seq + 1 # Performing seq2seq
 
-        if(raw_len <= ideal_len):
-            x[1:raw_len+1] = raw_mid
-            tgt[:raw_len]  = raw_mid
+        if(raw_len == 0):
+            return x, tgt
+
+        if(raw_len < full_seq):
+            x[:raw_len]         = raw_mid
+            tgt[:raw_len-1]     = raw_mid[1:]
+            tgt[raw_len]        = TOKEN_END
         else:
             # Randomly selecting a range
             if(self.random_seq):
-                end_range = raw_len - self.max_seq
-                x_start = random.randint(SEQUENCE_START, end_range)
+                end_range = raw_len - full_seq
+                start = random.randint(SEQUENCE_START, end_range)
 
             # Always taking from the start to as far as we can
             else:
-                x_start = SEQUENCE_START
+                start = SEQUENCE_START
 
-            x_end = x_start + self.max_seq
+            end = start + full_seq
 
-            tgt_start = x_start + 1
-            tgt_end = x_end + 1
+            data = raw_mid[start:end]
 
-            # Includes TOKEN_START
-            if(x_start == SEQUENCE_START):
-                x[1:] = raw_mid[:x_end]
-            else:
-                x = raw_mid[x_start:x_end]
+            x = data[:self.max_seq]
+            tgt = data[1:full_seq]
 
-            # Includes TOKEN_END
-            if(tgt_end == raw_len + 1):
-                tgt[:ideal_len] = raw_mid[tgt_start:tgt_end-1]
-            else:
-                tgt = raw_mid[tgt_start:tgt_end]
 
         # print("x:",x)
         # print("tgt:",tgt)
@@ -77,25 +69,37 @@ class EPianoDataset(Dataset):
         return x, tgt
 
 # create_epiano_datasets
-def create_epiano_datasets(dataset_root, max_seq):
+def create_epiano_datasets(dataset_root, max_seq, random_seq=True):
     train_root = os.path.join(dataset_root, "train")
     val_root = os.path.join(dataset_root, "val")
     test_root = os.path.join(dataset_root, "test")
 
-    train_dataset = EPianoDataset(train_root, max_seq)
-    val_dataset = EPianoDataset(val_root, max_seq)
+    train_dataset = EPianoDataset(train_root, max_seq, random_seq)
+    val_dataset = EPianoDataset(val_root, max_seq, random_seq)
     test_dataset = EPianoDataset(test_root, max_seq)
 
     return train_dataset, val_dataset, test_dataset
 
-def compute_epiano_accuracy(x, y):
+# compute_epiano_accuracy
+def compute_epiano_accuracy(out, tgt):
     softmax = nn.Softmax(dim=-1)
-    y_out = torch.argmax(softmax(y), dim=-1)
+    out = torch.argmax(softmax(out), dim=-1)
 
-    num_right = (y_out == x)
-    num_right = torch.sum(num_right, dim=-1).type(TORCH_FLOAT)
+    out = out.flatten()
+    tgt = tgt.flatten()
 
-    acc = num_right / x.shape[1]
-    acc = torch.sum(acc) / x.shape[0]
+    mask = (tgt != TOKEN_PAD)
+
+    out = out[mask]
+    tgt = tgt[mask]
+
+    # Empty
+    if(len(tgt) == 0):
+        return 1.0
+
+    num_right = (out == tgt)
+    num_right = torch.sum(num_right).type(TORCH_FLOAT)
+
+    acc = num_right / len(tgt)
 
     return acc

@@ -1,23 +1,37 @@
 import os
+import time
 import torch
 import torch.nn as nn
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 
-from utilities.lr_scheduling import LrStepTracker, get_lr
-from utilities.argument_funcs import parse_args, print_args
-from model.music_transformer import MusicTransformer
 from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
+
+from model.music_transformer import MusicTransformer
+from model.loss import SmoothCrossEntropyLoss
+
 from utilities.constants import *
+from utilities.lr_scheduling import LrStepTracker, get_lr
+from utilities.argument_funcs import parse_train_args, print_train_args, write_model_params
 from utilities.tensors import create_random_tensor
+from utilities.run_model import train_epoch, eval_model
 
 # main
 def main():
-    args = parse_args()
-    print_args(args)
+    args = parse_train_args()
+    print_train_args(args)
 
     os.makedirs(args.output_dir, exist_ok=True)
+
+    params_file = os.path.join(args.output_dir, "model_params.txt")
+    write_model_params(args, params_file)
+
+    weights_folder = os.path.join(args.output_dir, "weights")
+    os.makedirs(weights_folder, exist_ok=True)
+
+    results_folder = os.path.join(args.output_dir, "results")
+    os.makedirs(results_folder, exist_ok=True)
 
     train_dataset, val_dataset, test_dataset = create_epiano_datasets(args.input_dir, args.max_sequence)
 
@@ -34,11 +48,19 @@ def main():
     else:
         lr = args.lr
 
-    loss    = nn.CrossEntropyLoss()
+    # loss = nn.CrossEntropyLoss()
+    loss    = SmoothCrossEntropyLoss(LABEL_SMOOTHING_E, VOCAB_SIZE, ignore_index=TOKEN_PAD)
     opt     = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
 
     if(args.lr is None):
         lr_scheduler = LambdaLR(opt, lr_stepper.step)
+    else:
+        lr_scheduler = None
+
+    best_acc        = 0.0
+    best_acc_epoch  = -1
+    best_loss       = float("inf")
+    best_loss_epoch = -1
 
     for epoch in range(args.epochs):
         print(SEPERATOR)
@@ -46,61 +68,45 @@ def main():
         print(SEPERATOR)
         print("")
 
-        model.train()
-        for batch_num, batch in enumerate(train_loader):
-            opt.zero_grad()
-
-            x       = batch[0].to(TORCH_DEVICE)
-            tgt     = batch[1].to(TORCH_DEVICE)
-
-            y = model(x)
-
-            y   = y.permute(0,2,1) # (batch_size, classes, max_seq)
-            out = loss(y, tgt)
-
-            out.backward()
-            opt.step()
-
-            if(args.lr is None):
-                lr_scheduler.step()
-
-            print(SEPERATOR)
-            print("Epoch", epoch+1, " Batch", batch_num+1, "/", len(train_loader))
-            print("LR:", get_lr(opt))
-            print("Loss:", float(out))
-            print(SEPERATOR)
-            print("")
+        train_epoch(epoch+1, model, train_loader, loss, opt, lr_scheduler)
 
         print(SEPERATOR)
         print("Evaluating:")
-        model.eval()
 
-        with torch.set_grad_enabled(False):
-            n_test      = len(test_loader)
-            full_loss   = 0.0
-            full_acc    = 0.0
-            for batch in test_loader:
-                x       = batch[0].to(TORCH_DEVICE)
-                tgt     = batch[1].to(TORCH_DEVICE)
+        cur_loss, cur_acc = eval_model(model, test_loader, loss)
 
-                y = model(x)
+        print("Avg loss:", cur_loss)
+        print("Avg acc:", cur_acc)
+        print(SEPERATOR)
+        print("")
 
-                full_acc += float(compute_epiano_accuracy(tgt, y))
-
-                y   = y.permute(0,2,1) # (batch_size, classes, max_seq)
-                out = loss(y, tgt)
-
-                full_loss += float(out)
-
-            print("Avg loss:", full_loss / n_test)
-            print("Avg acc:", full_acc / n_test)
-            print(SEPERATOR)
-            print("")
+        if(cur_acc > best_acc):
+            best_acc    = cur_acc
+            best_acc_epoch  = epoch+1
+        if(cur_loss < best_loss):
+            best_loss       = cur_loss
+            best_loss_epoch = epoch+1
 
 
 
-        path = os.path.join(args.output_dir, "epoch_" + str(epoch+1) + ".pickle")
-        torch.save(model.state_dict(), path)
+        epoch_str = str(epoch+1).zfill(PREPEND_ZEROS_WIDTH)
+
+        if((epoch+1) % args.weight_modulus == 0):
+            path = os.path.join(weights_folder, "epoch_" + epoch_str + ".pickle")
+            torch.save(model.state_dict(), path)
+
+        path = os.path.join(results_folder, "epoch_" + epoch_str + ".txt")
+        o_stream = open(path, "w")
+        o_stream.write(str(cur_acc) + "\n")
+        o_stream.write(str(cur_loss) + "\n")
+        o_stream.close()
+
+    print(SEPERATOR)
+    print("Best acc epoch:", best_acc_epoch)
+    print("Best acc:", best_acc)
+    print("")
+    print("Best loss epoch:", best_loss_epoch)
+    print("Best loss:", best_loss)
 
 
 if __name__ == "__main__":

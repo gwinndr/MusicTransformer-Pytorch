@@ -12,6 +12,8 @@ class MusicTransformer(nn.Module):
     def __init__(self, args):
         super(MusicTransformer, self).__init__()
 
+        self.dummy      = DummyDecoder()
+
         self.nlayers    = args.n_layers
         self.nhead      = args.num_heads
         self.d_model    = args.d_model
@@ -27,10 +29,11 @@ class MusicTransformer(nn.Module):
         self.positional_encoding = PositionalEncoding(self.d_model, self.dropout, self.max_seq)
 
         # To make a decoder-only transformer we need to use masked encoder layers
+        # Dummy decoder to essentially just return the encoder output
         self.transformer = nn.Transformer(
             d_model=self.d_model, nhead=self.nhead, num_encoder_layers=self.nlayers,
             num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
-            dim_feedforward=self.d_ff
+            dim_feedforward=self.d_ff, custom_decoder=self.dummy
         )
 
         # Input sequence mask
@@ -77,12 +80,19 @@ class MusicTransformer(nn.Module):
             gen_seq[..., 0] = TOKEN_START
             num_primer = 1
 
+        # print("primer:",primer)
+        # print(gen_seq)
         cur_i = num_primer
         while(cur_i < self.max_seq):
-            y           = self.forward(gen_seq)
-            next_token  = torch.argmax(y[0, cur_i, :])
+            y           = self.softmax(self.forward(gen_seq))
+            next_token  = torch.argmax(y[0, :, :] , dim=-1)
+            next_token  = next_token[cur_i-1]
 
+            # print("next token:",next_token)
+
+            # print(next_token)
             gen_seq[0, cur_i] = next_token
+
 
             # Let the transformer decide to end if it wants to
             if(next_token == TOKEN_END):
@@ -95,3 +105,12 @@ class MusicTransformer(nn.Module):
 
         # No need to keep the start and end tokens
         return gen_seq[:, 1:cur_i]
+
+# Used as a dummy to nn.Transformer
+# DummyDecoder
+class DummyDecoder(nn.Module):
+    def __init__(self):
+        super(DummyDecoder, self).__init__()
+
+    def forward(self, tgt, memory, tgt_mask, memory_mask,tgt_key_padding_mask,memory_key_padding_mask):
+        return memory
