@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import random
 
 from utilities.constants import *
 from utilities.tensors import create_full_tensor
@@ -66,10 +67,10 @@ class MusicTransformer(nn.Module):
         return y
 
     # generate
-    def generate(self, primer=None):
+    def generate(self, primer=None, target_seq_length=1024):
         assert (not self.training), "Cannot generate while in training mode"
 
-        print("Generating sequence of max length:", self.max_seq)
+        print("Generating sequence of max length:", target_seq_length)
 
         gen_seq = create_full_tensor((1,self.max_seq), TOKEN_END, TORCH_LABEL_TYPE)
 
@@ -80,13 +81,33 @@ class MusicTransformer(nn.Module):
             gen_seq[..., 0] = TOKEN_START
             num_primer = 1
 
+
         # print("primer:",primer)
         # print(gen_seq)
         cur_i = num_primer
-        while(cur_i < self.max_seq):
+        while(cur_i < target_seq_length):
+            # gen_seq_batch     = gen_seq.clone()
             y           = self.softmax(self.forward(gen_seq))
-            next_token  = torch.argmax(y[0, :, :] , dim=-1)
-            next_token  = next_token[cur_i-1]
+            token_probs  = y[0, cur_i-1, :]
+
+            # probability_dist = random.randint(0,1)
+            probability_dist=1
+
+            if(probability_dist == 1):
+                distrib = torch.distributions.categorical.Categorical(probs=token_probs)
+
+                # Must persist for 5 times at TOKEN_END to end early
+                persist = 0
+                next_token = -1
+                while(persist < 5):
+                    next_token = distrib.sample()
+                    if(next_token == TOKEN_END):
+                        persist += 1
+                        print("persist:", persist)
+                    else:
+                        break
+            else:
+                next_token = torch.argmax(token_probs, dim=-1)
 
             # print("next token:",next_token)
 
@@ -96,15 +117,14 @@ class MusicTransformer(nn.Module):
 
             # Let the transformer decide to end if it wants to
             if(next_token == TOKEN_END):
-                print("Model called end of sequence at:", cur_i, "/", self.max_seq)
+                print("Model called end of sequence at:", cur_i, "/", target_seq_length)
                 break
 
             cur_i += 1
             if(cur_i % 50 == 0):
-                print(cur_i, "/", self.max_seq)
+                print(cur_i, "/", target_seq_length)
 
-        # No need to keep the start and end tokens
-        return gen_seq[:, 1:cur_i]
+        return gen_seq[:, :cur_i]
 
 # Used as a dummy to nn.Transformer
 # DummyDecoder

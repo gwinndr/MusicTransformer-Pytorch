@@ -40,6 +40,14 @@ def main():
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=4)
 
     model = MusicTransformer(args).to(TORCH_DEVICE)
+    start_epoch = 0
+    if(args.continue_epoch is not None):
+        if(args.continue_epoch is None):
+            print("ERROR: Need epoch number of weights to continue from (-continue_epoch)")
+            return
+        else:
+            model.load_state_dict(torch.load(args.continue_weights))
+            start_epoch = args.continue_epoch
 
     # Lr Scheduler vs static lr
     if(args.lr is None):
@@ -62,7 +70,7 @@ def main():
     best_loss       = float("inf")
     best_loss_epoch = -1
 
-    for epoch in range(args.epochs):
+    for epoch in range(start_epoch, args.epochs):
         print(SEPERATOR)
         print("NEW EPOCH:", epoch+1)
         print(SEPERATOR)

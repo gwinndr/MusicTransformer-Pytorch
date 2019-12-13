@@ -10,6 +10,9 @@ def parse_train_args():
     parser.add_argument("-output_dir", type=str, default="./saved_models", help="Folder to save model weights. Saves one every epoch")
     parser.add_argument("-weight_modulus", type=int, default=1, help="How often to save epoch weights (ex: value of 10 means save every 10 epochs)")
 
+    parser.add_argument("-continue_weights", type=str, default=None, help="Model weights to continue training based on")
+    parser.add_argument("-continue_epoch", type=int, default=None, help="Epoch the continue_weights model was at")
+
     parser.add_argument("-lr", type=float, default=None, help="Constant learn rate. Leave as None for a custom scheduler.")
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
     parser.add_argument("-epochs", type=int, default=100, help="Number of epochs to use")
@@ -32,6 +35,9 @@ def print_train_args(args):
     print("output_dir:", args.output_dir)
     print("weight_modulus:", args.weight_modulus)
     print("")
+    print("continue_weights:", args.continue_weights)
+    print("continue_epoch:", args.continue_epoch)
+    print("")
     print("lr:", args.lr)
     print("batch_size:", args.batch_size)
     print("epochs:", args.epochs)
@@ -49,17 +55,21 @@ def print_train_args(args):
 
 # parse_eval_args
 def parse_eval_args():
+    parser = argparse.ArgumentParser()
+
     parser.add_argument("-dataset_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
     parser.add_argument("-model_weights", type=str, default="./saved_models/model.pickle", help="Pickled model weights file saved with torch.save and model.state_dict()")
 
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
 
-    parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
+    parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider in the model")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
     parser.add_argument("-d_model", type=int, default=512, help="Dimension of the model (output dim of embedding layers, etc.)")
 
     parser.add_argument("-dim_feedforward", type=int, default=2048, help="Dimension of the feedforward layer")
+
+    return parser.parse_args()
 
 # print_eval_args
 def print_eval_args(args):
@@ -79,11 +89,14 @@ def print_eval_args(args):
     print("")
 
 # parse_generate_args
-def parse_generate_args(args):
-    parser.add_argument("-midi_primer", type=str, default="./dataset/e_piano/test/MIDI-Unprocessed_01_R1_2006_01-09_ORIG_MID--AUDIO_01_R1_2006_02_Track02_wav.midi.pickle", help="Midi file to prime the generator with")
+def parse_generate_args():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-midi_root", type=str, default="./dataset/e_piano/", help="Midi file to prime the generator with")
     parser.add_argument("-output_dir", type=str, default="./gen", help="Folder to write generated midi to")
 
-    parser.add_argument("-num_prime", type=int, default=25, help="Amount of messages to prime the generator with")
+    parser.add_argument("-target_seq_length", type=int, default=1024, help="Target length you'd like the midi to be")
+    parser.add_argument("-num_prime", type=int, default=256, help="Amount of messages to prime the generator with")
     parser.add_argument("-model_weights", type=str, default="./saved_models/model.pickle", help="Pickled model weights file saved with torch.save and model.state_dict()")
 
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
@@ -93,12 +106,17 @@ def parse_generate_args(args):
 
     parser.add_argument("-dim_feedforward", type=int, default=2048, help="Dimension of the feedforward layer")
 
+    parser.add_argument("-dropout", type=float, default=0.1, help="Unused, for model initialization")
+
+    return parser.parse_args()
+
 # print_generate_args
 def print_generate_args(args):
     print(SEPERATOR)
-    print("midi_primer:", args.midi_primer)
+    print("midi_root:", args.midi_root)
     print("output_dir:", args.output_dir)
     print("")
+    print("target_seq_length:", args.target_seq_length)
     print("num_prime:", args.num_prime)
     print("model_weights:", args.model_weights)
     print("")
