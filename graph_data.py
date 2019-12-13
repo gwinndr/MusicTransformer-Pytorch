@@ -20,13 +20,13 @@ def parseInput(InputFolder, outputFolder):
     accuracy_arr = []
     epochs = []
 
-    number_of_epochs = 10
+    number_of_epochs = 3000
     for x in range(1,number_of_epochs):
         ep_num = ""
         if number_of_epochs < 10:
             ep_num = "epoch_000" + str(x)
         elif number_of_epochs < 100 and number_of_epochs > 9:
-            ep_num = "epoch_000" + str(x)
+            ep_num = "epoch_00" + str(x)
         elif number_of_epochs < 1000 and number_of_epochs > 99:
             ep_num = "epoch_0" + str(x)
         elif number_of_epochs < 3001 and number_of_epochs > 999:
