@@ -23,13 +23,13 @@ def parseInput(InputFolder, outputFolder):
     number_of_epochs = 3000
     for x in range(1,number_of_epochs):
         ep_num = ""
-        if number_of_epochs < 10:
+        if x < 10:
             ep_num = "epoch_000" + str(x)
-        elif number_of_epochs < 100 and number_of_epochs > 9:
+        elif x < 100 and x > 9:
             ep_num = "epoch_00" + str(x)
-        elif number_of_epochs < 1000 and number_of_epochs > 99:
+        elif x < 1000 and x > 99:
             ep_num = "epoch_0" + str(x)
-        elif number_of_epochs < 3001 and number_of_epochs > 999:
+        elif x < 3001 and x > 999:
             ep_num = "epoch_" + str(x)
 
         path = InputFolder + ep_num + ".txt"
