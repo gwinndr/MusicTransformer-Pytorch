@@ -4,13 +4,10 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 def main():
     inputFolder = 'test_data/'
     outputFolder = 'outputGraphs/'
-
     parseInput(inputFolder, outputFolder)
-
 
 def parseInput(InputFolder, outputFolder):
     parser = argparse.ArgumentParser()
@@ -51,14 +48,14 @@ def parseInput(InputFolder, outputFolder):
         print ("Creation of the directory %s failed" % path)
     else:
         print ("Successfully created the directory %s " % path)
-
+    
+    #Create and save plots to output folder
     plt.plot(epochs,loss_arr)
     plt.ylabel('Loss')
     plt.xlabel('Number of Epochs')
     fig1 = plt.gcf()
     plt.show()
     fig1.savefig(outputFolder + 'loss_graph.png')
-
 
     plt.plot(epochs,accuracy_arr)
     plt.ylabel('Accuracy')
