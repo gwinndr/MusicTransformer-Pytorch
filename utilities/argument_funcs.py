@@ -17,6 +17,7 @@ def parse_train_args():
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
     parser.add_argument("-epochs", type=int, default=100, help="Number of epochs to use")
 
+    parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
@@ -42,6 +43,7 @@ def print_train_args(args):
     print("batch_size:", args.batch_size)
     print("epochs:", args.epochs)
     print("")
+    print("rpr:", args.rpr)
     print("max_sequence:", args.max_sequence)
     print("n_layers:", args.n_layers)
     print("num_heads:", args.num_heads)
@@ -133,6 +135,7 @@ def print_generate_args(args):
 def write_model_params(args, output_file):
     o_stream = open(output_file, "w")
 
+    o_stream.write("rpr: " + str(args.rpr) + "\n")
     o_stream.write("lr: " + str(args.lr) + "\n")
     o_stream.write("batch_size: " + str(args.batch_size) + "\n")
     o_stream.write("max_sequence: " + str(args.max_sequence) + "\n")

@@ -2,10 +2,11 @@ import torch
 import torch.nn as nn
 import random
 
+from torch.nn.modules.normalization import LayerNorm
 from utilities.constants import *
 from utilities.tensors import create_full_tensor
 from .positional_encoding import PositionalEncoding
-
+from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
 
 
 # MusicTransformer
@@ -22,6 +23,7 @@ class MusicTransformer(nn.Module):
         # self.ff_activ   = args.feedforward_activation
         self.dropout    = args.dropout
         self.max_seq    = args.max_sequence
+        self.rpr        = args.rpr
 
         # Input embedding
         self.embedding = nn.Embedding(VOCAB_SIZE, self.d_model)
@@ -29,13 +31,23 @@ class MusicTransformer(nn.Module):
         # Positional encoding
         self.positional_encoding = PositionalEncoding(self.d_model, self.dropout, self.max_seq)
 
-        # To make a decoder-only transformer we need to use masked encoder layers
-        # Dummy decoder to essentially just return the encoder output
-        self.transformer = nn.Transformer(
-            d_model=self.d_model, nhead=self.nhead, num_encoder_layers=self.nlayers,
-            num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
-            dim_feedforward=self.d_ff, custom_decoder=self.dummy
-        )
+        if(not self.rpr):
+            # To make a decoder-only transformer we need to use masked encoder layers
+            # Dummy decoder to essentially just return the encoder output
+            self.transformer = nn.Transformer(
+                d_model=self.d_model, nhead=self.nhead, num_encoder_layers=self.nlayers,
+                num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
+                dim_feedforward=self.d_ff, custom_decoder=self.dummy
+            )
+        else:
+            encoder_norm = LayerNorm(self.d_model)
+            encoder_layer = TransformerEncoderLayerRPR(self.d_model, self.nhead, self.d_ff, self.dropout, er_len=self.max_seq)
+            encoder = TransformerEncoderRPR(encoder_layer, self.nlayers, encoder_norm)
+            self.transformer = nn.Transformer(
+                d_model=self.d_model, nhead=self.nhead, num_encoder_layers=self.nlayers,
+                num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
+                dim_feedforward=self.d_ff, custom_decoder=self.dummy, custom_encoder=encoder
+            )
 
         # Input sequence mask
         self.mask = self.transformer.generate_square_subsequent_mask(self.max_seq).to(TORCH_DEVICE)
