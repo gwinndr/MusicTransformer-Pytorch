@@ -9,10 +9,11 @@ import math
 
 # LrStepTracker
 class LrStepTracker:
-    def __init__(self, model_dim=512, warmup_steps=4000):
+    def __init__(self, model_dim=512, warmup_steps=4000, init_steps=0):
         # Store Values
         self.warmup_steps = warmup_steps
         self.model_dim = model_dim
+        self.init_steps = init_steps
 
         # Begin Calculations
         self.invsqrt_dim = (1 / math.sqrt(model_dim))
@@ -20,6 +21,7 @@ class LrStepTracker:
 
     # step
     def step(self, step):
+        step += self.init_steps
         if(step <= self.warmup_steps):
             return self.invsqrt_dim * self.invsqrt_warmup * step
         else:

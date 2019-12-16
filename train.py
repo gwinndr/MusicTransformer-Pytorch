@@ -51,8 +51,13 @@ def main():
 
     # Lr Scheduler vs static lr
     if(args.lr is None):
+        if(args.continue_epoch is None):
+            init_step = 0
+        else:
+            init_step = args.continue_epoch * len(train_loader)
+
         lr = LR_DEFAULT_START
-        lr_stepper = LrStepTracker(args.d_model, SCHEDULER_WARMUP_STEPS)
+        lr_stepper = LrStepTracker(args.d_model, SCHEDULER_WARMUP_STEPS, init_step)
     else:
         lr = args.lr
 
