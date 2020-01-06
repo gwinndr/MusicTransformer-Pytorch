@@ -64,12 +64,15 @@ def parse_eval_args():
 
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
 
+    parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider in the model")
     parser.add_argument("-n_layers", type=int, default=6, help="Number of decoder layers to use")
     parser.add_argument("-num_heads", type=int, default=8, help="Number of heads to use for multi-head attention")
     parser.add_argument("-d_model", type=int, default=512, help="Dimension of the model (output dim of embedding layers, etc.)")
 
     parser.add_argument("-dim_feedforward", type=int, default=2048, help="Dimension of the feedforward layer")
+
+    parser.add_argument("-dropout", type=float, default=0.1, help="Unused in this context")
 
     return parser.parse_args()
 
@@ -81,6 +84,7 @@ def print_eval_args(args):
     print("")
     print("batch_size:", args.batch_size)
     print("")
+    print("rpr:", args.rpr)
     print("max_sequence:", args.max_sequence)
     print("n_layers:", args.n_layers)
     print("num_heads:", args.num_heads)
