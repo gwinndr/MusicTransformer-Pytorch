@@ -352,18 +352,6 @@ def multi_head_attention_forward_rpr(query,                       # type: Tensor
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
     assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
 
-    if attn_mask is not None:
-        attn_mask = attn_mask.unsqueeze(0)
-        attn_output_weights += attn_mask
-
-    if key_padding_mask is not None:
-        attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
-        attn_output_weights = attn_output_weights.masked_fill(
-            key_padding_mask.unsqueeze(1).unsqueeze(2),
-            float('-inf'),
-        )
-        attn_output_weights = attn_output_weights.view(bsz * num_heads, tgt_len, src_len)
-
     # Where rpr happens
     if(rpr_mat is not None):
         # print("q.shape:", q.shape)
@@ -375,6 +363,18 @@ def multi_head_attention_forward_rpr(query,                       # type: Tensor
 
         # print("not implemented")
         attn_output_weights += srel
+
+    if attn_mask is not None:
+        attn_mask = attn_mask.unsqueeze(0)
+        attn_output_weights += attn_mask
+
+    if key_padding_mask is not None:
+        attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, src_len)
+        attn_output_weights = attn_output_weights.masked_fill(
+            key_padding_mask.unsqueeze(1).unsqueeze(2),
+            float('-inf'),
+        )
+        attn_output_weights = attn_output_weights.view(bsz * num_heads, tgt_len, src_len)
 
     attn_output_weights = softmax(
         attn_output_weights, dim=-1)

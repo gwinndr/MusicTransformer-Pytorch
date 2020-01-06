@@ -49,15 +49,17 @@ class MusicTransformer(nn.Module):
                 dim_feedforward=self.d_ff, custom_decoder=self.dummy, custom_encoder=encoder
             )
 
-        # Input sequence mask
-        self.mask = self.transformer.generate_square_subsequent_mask(self.max_seq).to(TORCH_DEVICE)
-
         # Final output is a softmaxed linear layer
         self.Wout       = nn.Linear(self.d_model, VOCAB_SIZE)
         self.softmax    = nn.Softmax(dim=-1)
 
     # forward
-    def forward(self, x):
+    def forward(self, x, mask=True):
+        if(mask is True):
+            mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(TORCH_DEVICE)
+        else:
+            mask = None
+
         x = self.embedding(x)
 
         # Input shape is (max_seq, batch_size, d_model)
@@ -67,7 +69,7 @@ class MusicTransformer(nn.Module):
 
         # Since there are no true decoder layers, the tgt is unused
         # Pytorch wants src and tgt to have some equal dims however
-        x_out = self.transformer(src=x, tgt=x, src_mask=self.mask)
+        x_out = self.transformer(src=x, tgt=x, src_mask=mask)
 
         # Back to (batch_size, max_seq, d_model)
         x_out = x_out.permute(1,0,2)
@@ -75,23 +77,21 @@ class MusicTransformer(nn.Module):
         y = self.Wout(x_out)
         # y = self.softmax(y)
 
+        del mask
+
         # They are trained to predict the next note in sequence (we don't need the last one)
         return y
 
     # generate
-    def generate(self, primer=None, target_seq_length=1024):
+    def generate(self, primer=None, target_seq_length=1024, beam=0, beam_chance=1.0):
         assert (not self.training), "Cannot generate while in training mode"
 
         print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = create_full_tensor((1,self.max_seq), TOKEN_END, TORCH_LABEL_TYPE)
+        gen_seq = create_full_tensor((1,target_seq_length), TOKEN_PAD, TORCH_LABEL_TYPE)
 
-        if(primer is not None):
-            num_primer = len(primer)
-            gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(TORCH_DEVICE)
-        else:
-            gen_seq[..., 0] = TOKEN_START
-            num_primer = 1
+        num_primer = len(primer)
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(TORCH_DEVICE)
 
 
         # print("primer:",primer)
@@ -99,38 +99,35 @@ class MusicTransformer(nn.Module):
         cur_i = num_primer
         while(cur_i < target_seq_length):
             # gen_seq_batch     = gen_seq.clone()
-            y           = self.softmax(self.forward(gen_seq))
-            token_probs  = y[0, cur_i-1, :]
+            y           = self.softmax(self.forward(gen_seq[..., :cur_i]))[..., :TOKEN_END]
+            token_probs  = y[:, cur_i-1, :]
 
-            # probability_dist = random.randint(0,1)
-            probability_dist=1
-
-            if(probability_dist == 1):
-                distrib = torch.distributions.categorical.Categorical(probs=token_probs)
-
-                # Must persist for 5 times at TOKEN_END to end early
-                persist = 0
-                next_token = -1
-                while(persist < 5):
-                    next_token = distrib.sample()
-                    if(next_token == TOKEN_END):
-                        persist += 1
-                        print("persist:", persist)
-                    else:
-                        break
+            if(beam == 0):
+                beam_ran = 2.0
             else:
-                next_token = torch.argmax(token_probs, dim=-1)
+                beam_ran = random.uniform(0,1)
 
-            # print("next token:",next_token)
+            if(beam_ran <= beam_chance):
+                token_probs = token_probs.flatten()
+                top_res, top_i = torch.topk(token_probs, beam)
 
-            # print(next_token)
-            gen_seq[0, cur_i] = next_token
+                beam_rows = top_i // VOCAB_SIZE
+                beam_cols = top_i % VOCAB_SIZE
+
+                gen_seq = gen_seq[beam_rows, :]
+                gen_seq[..., cur_i] = beam_cols
+
+            else:
+                distrib = torch.distributions.categorical.Categorical(probs=token_probs)
+                next_token = distrib.sample()
+                # print("next token:",next_token)
+                gen_seq[:, cur_i] = next_token
 
 
-            # Let the transformer decide to end if it wants to
-            if(next_token == TOKEN_END):
-                print("Model called end of sequence at:", cur_i, "/", target_seq_length)
-                break
+                # Let the transformer decide to end if it wants to
+                if(next_token == TOKEN_END):
+                    print("Model called end of sequence at:", cur_i, "/", target_seq_length)
+                    break
 
             cur_i += 1
             if(cur_i % 50 == 0):
