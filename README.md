@@ -1,7 +1,7 @@
 # Music Transformer
 Currently supports Pytorch 1.2.0 with Python >= 3.6
 
-Disclaimer: Still a work in progress :)
+Disclaimer: README still a work in progress :)
 
 ## About
 This is a reproduction of the MusicTransformer (Huang et al., 2018) for Pytorch. This implementation utilizes the generic Transformer implementation introduced in Pytorch 1.2.0 (https://pytorch.org/docs/stable/nn.html#torch.nn.Transformer). Statistics gathering is still in progress and this README will be updated upon completion.
