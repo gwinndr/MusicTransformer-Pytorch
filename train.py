@@ -9,7 +9,7 @@ from torch.optim import Adam
 from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
 
 from model.music_transformer import MusicTransformer
-from model.loss import SmoothCrossEntropyLoss
+# from model.loss import SmoothCrossEntropyLoss
 
 from utilities.constants import *
 from utilities.lr_scheduling import LrStepTracker, get_lr
@@ -35,7 +35,7 @@ def main():
 
     train_dataset, val_dataset, test_dataset = create_epiano_datasets(args.input_dir, args.max_sequence)
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=4)
+    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=4, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, num_workers=4)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=4)
 
@@ -61,8 +61,8 @@ def main():
     else:
         lr = args.lr
 
-    # loss = nn.CrossEntropyLoss()
-    loss    = SmoothCrossEntropyLoss(LABEL_SMOOTHING_E, VOCAB_SIZE, ignore_index=TOKEN_PAD)
+    loss = nn.CrossEntropyLoss()
+    # loss    = SmoothCrossEntropyLoss(LABEL_SMOOTHING_E, VOCAB_SIZE, ignore_index=TOKEN_PAD)
     opt     = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
 
     if(args.lr is None):

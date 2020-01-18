@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
 
 from model.music_transformer import MusicTransformer
-from model.loss import SmoothCrossEntropyLoss
+# from model.loss import SmoothCrossEntropyLoss
 
 from utilities.constants import *
 from utilities.argument_funcs import parse_eval_args, print_eval_args
