@@ -9,11 +9,13 @@ def parse_train_args():
     parser.add_argument("-input_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
     parser.add_argument("-output_dir", type=str, default="./saved_models", help="Folder to save model weights. Saves one every epoch")
     parser.add_argument("-weight_modulus", type=int, default=1, help="How often to save epoch weights (ex: value of 10 means save every 10 epochs)")
+    parser.add_argument("-n_workers", type=int, default=1, help="Number of threads for the dataloader")
 
     parser.add_argument("-continue_weights", type=str, default=None, help="Model weights to continue training based on")
     parser.add_argument("-continue_epoch", type=int, default=None, help="Epoch the continue_weights model was at")
 
     parser.add_argument("-lr", type=float, default=None, help="Constant learn rate. Leave as None for a custom scheduler.")
+    parser.add_argument("-ce_smoothing", type=float, default=None, help="Smoothing parameter for smoothed cross entropy loss (defaults to no smoothing)")
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
     parser.add_argument("-epochs", type=int, default=100, help="Number of epochs to use")
 
@@ -35,11 +37,13 @@ def print_train_args(args):
     print("input_dir:", args.input_dir)
     print("output_dir:", args.output_dir)
     print("weight_modulus:", args.weight_modulus)
+    print("n_workers:", args.n_workers)
     print("")
     print("continue_weights:", args.continue_weights)
     print("continue_epoch:", args.continue_epoch)
     print("")
     print("lr:", args.lr)
+    print("ce_smoothing:", args.ce_smoothing)
     print("batch_size:", args.batch_size)
     print("epochs:", args.epochs)
     print("")
@@ -50,7 +54,6 @@ def print_train_args(args):
     print("d_model:", args.d_model)
     print("")
     print("dim_feedforward:", args.dim_feedforward)
-    # print("feedforward_activation:", args.feedforward_activation)
     print("dropout:", args.dropout)
     print(SEPERATOR)
     print("")
@@ -61,6 +64,7 @@ def parse_eval_args():
 
     parser.add_argument("-dataset_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
     parser.add_argument("-model_weights", type=str, default="./saved_models/model.pickle", help="Pickled model weights file saved with torch.save and model.state_dict()")
+    parser.add_argument("-n_workers", type=int, default=1, help="Number of threads for the dataloader")
 
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
 
@@ -72,8 +76,6 @@ def parse_eval_args():
 
     parser.add_argument("-dim_feedforward", type=int, default=2048, help="Dimension of the feedforward layer")
 
-    parser.add_argument("-dropout", type=float, default=0.1, help="Unused in this context")
-
     return parser.parse_args()
 
 # print_eval_args
@@ -81,6 +83,7 @@ def print_eval_args(args):
     print(SEPERATOR)
     print("dataset_dir:", args.dataset_dir)
     print("model_weights:", args.model_weights)
+    print("n_workers:", args.n_workers)
     print("")
     print("batch_size:", args.batch_size)
     print("")
@@ -114,8 +117,6 @@ def parse_generate_args():
 
     parser.add_argument("-dim_feedforward", type=int, default=2048, help="Dimension of the feedforward layer")
 
-    parser.add_argument("-dropout", type=float, default=0.1, help="Unused, for model initialization")
-
     return parser.parse_args()
 
 # print_generate_args
@@ -145,6 +146,7 @@ def write_model_params(args, output_file):
 
     o_stream.write("rpr: " + str(args.rpr) + "\n")
     o_stream.write("lr: " + str(args.lr) + "\n")
+    o_stream.write("ce_smoothing: " + str(args.ce_smoothing) + "\n")
     o_stream.write("batch_size: " + str(args.batch_size) + "\n")
     o_stream.write("max_sequence: " + str(args.max_sequence) + "\n")
     o_stream.write("n_layers: " + str(args.n_layers) + "\n")

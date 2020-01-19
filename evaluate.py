@@ -1,10 +1,10 @@
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from dataset.e_piano import create_epiano_datasets, compute_epiano_accuracy
 
 from model.music_transformer import MusicTransformer
-# from model.loss import SmoothCrossEntropyLoss
 
 from utilities.constants import *
 from utilities.argument_funcs import parse_eval_args, print_eval_args
@@ -17,12 +17,15 @@ def main():
 
     _, _, test_dataset = create_epiano_datasets(args.dataset_dir, args.max_sequence)
 
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=4)
-    model = MusicTransformer(args).to(TORCH_DEVICE)
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.n_workers)
+
+    model = MusicTransformer(n_layers=args.n_layers, num_heads=args.num_heads,
+                d_model=args.d_model, dim_feedforward=args.dim_feedforward,
+                max_sequence=args.max_sequence, rpr=args.rpr).to(TORCH_DEVICE)
+
     model.load_state_dict(torch.load(args.model_weights))
 
-    # loss    = SmoothCrossEntropyLoss(LABEL_SMOOTHING_E, VOCAB_SIZE, ignore_index=TOKEN_PAD)
-    loss    = torch.nn.CrossEntropyLoss()
+    loss = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
 
     print("Evaluating:")
     model.eval()

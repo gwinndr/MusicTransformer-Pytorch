@@ -11,19 +11,19 @@ from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
 
 # MusicTransformer
 class MusicTransformer(nn.Module):
-    def __init__(self, args):
+    def __init__(self, n_layers=6, num_heads=8, d_model=512, dim_feedforward=2048,
+                 dropout=0.1, max_sequence=2048, rpr=False):
         super(MusicTransformer, self).__init__()
 
         self.dummy      = DummyDecoder()
 
-        self.nlayers    = args.n_layers
-        self.nhead      = args.num_heads
-        self.d_model    = args.d_model
-        self.d_ff       = args.dim_feedforward
-        # self.ff_activ   = args.feedforward_activation
-        self.dropout    = args.dropout
-        self.max_seq    = args.max_sequence
-        self.rpr        = args.rpr
+        self.nlayers    = n_layers
+        self.nhead      = num_heads
+        self.d_model    = d_model
+        self.d_ff       = dim_feedforward
+        self.dropout    = dropout
+        self.max_seq    = max_sequence
+        self.rpr        = rpr
 
         # Input embedding
         self.embedding = nn.Embedding(VOCAB_SIZE, self.d_model)

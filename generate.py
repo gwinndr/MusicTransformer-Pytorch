@@ -21,7 +21,10 @@ def main():
 
     _, _, dataset = create_epiano_datasets(args.midi_root, args.max_sequence, random_seq=False)
 
-    model = MusicTransformer(args).to(TORCH_DEVICE)
+    model = MusicTransformer(n_layers=args.n_layers, num_heads=args.num_heads,
+                d_model=args.d_model, dim_feedforward=args.dim_feedforward,
+                max_sequence=args.max_sequence, rpr=args.rpr).to(TORCH_DEVICE)
+
     model.load_state_dict(torch.load(args.model_weights))
 
     idx     = random.randrange(len(dataset))
