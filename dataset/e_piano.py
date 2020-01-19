@@ -32,41 +32,48 @@ class EPianoDataset(Dataset):
         raw_mid     = create_tensor(pickle.load(i_stream), TORCH_LABEL_TYPE, device=TORCH_CPU)
         i_stream.close()
 
-        x   = create_full_tensor((self.max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
-        tgt = create_full_tensor((self.max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
-
-        raw_len     = len(raw_mid)
-        full_seq    = self.max_seq + 1 # Performing seq2seq
-
-        if(raw_len == 0):
-            return x, tgt
-
-        if(raw_len < full_seq):
-            x[:raw_len]         = raw_mid
-            tgt[:raw_len-1]     = raw_mid[1:]
-            tgt[raw_len]        = TOKEN_END
-        else:
-            # Randomly selecting a range
-            if(self.random_seq):
-                end_range = raw_len - full_seq
-                start = random.randint(SEQUENCE_START, end_range)
-
-            # Always taking from the start to as far as we can
-            else:
-                start = SEQUENCE_START
-
-            end = start + full_seq
-
-            data = raw_mid[start:end]
-
-            x = data[:self.max_seq]
-            tgt = data[1:full_seq]
-
-
-        # print("x:",x)
-        # print("tgt:",tgt)
+        x, tgt = process_midi(raw_mid, self.max_seq, self.random_seq)
 
         return x, tgt
+
+# process_midi
+def process_midi(raw_mid, max_seq, random_seq):
+    x   = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
+    tgt = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
+
+    raw_len     = len(raw_mid)
+    full_seq    = max_seq + 1 # Performing seq2seq
+
+    if(raw_len == 0):
+        return x, tgt
+
+    if(raw_len < full_seq):
+        x[:raw_len]         = raw_mid
+        tgt[:raw_len-1]     = raw_mid[1:]
+        tgt[raw_len]        = TOKEN_END
+    else:
+        # Randomly selecting a range
+        if(random_seq):
+            end_range = raw_len - full_seq
+            start = random.randint(SEQUENCE_START, end_range)
+
+        # Always taking from the start to as far as we can
+        else:
+            start = SEQUENCE_START
+
+        end = start + full_seq
+
+        data = raw_mid[start:end]
+
+        x = data[:max_seq]
+        tgt = data[1:full_seq]
+
+
+    # print("x:",x)
+    # print("tgt:",tgt)
+
+    return x, tgt
+
 
 # create_epiano_datasets
 def create_epiano_datasets(dataset_root, max_seq, random_seq=True):
@@ -76,7 +83,7 @@ def create_epiano_datasets(dataset_root, max_seq, random_seq=True):
 
     train_dataset = EPianoDataset(train_root, max_seq, random_seq)
     val_dataset = EPianoDataset(val_root, max_seq, random_seq)
-    test_dataset = EPianoDataset(test_root, max_seq)
+    test_dataset = EPianoDataset(test_root, max_seq, random_seq)
 
     return train_dataset, val_dataset, test_dataset
 

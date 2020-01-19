@@ -103,6 +103,7 @@ def parse_generate_args():
 
     parser.add_argument("-midi_root", type=str, default="./dataset/e_piano/", help="Midi file to prime the generator with")
     parser.add_argument("-output_dir", type=str, default="./gen", help="Folder to write generated midi to")
+    parser.add_argument("-primer_file", type=str, default=None, help="File path or integer index to the evaluation dataset. Default is to select a random index.")
 
     parser.add_argument("-target_seq_length", type=int, default=1024, help="Target length you'd like the midi to be")
     parser.add_argument("-num_prime", type=int, default=256, help="Amount of messages to prime the generator with")
@@ -124,6 +125,7 @@ def print_generate_args(args):
     print(SEPERATOR)
     print("midi_root:", args.midi_root)
     print("output_dir:", args.output_dir)
+    print("primer_file:", args.primer_file)
     print("")
     print("target_seq_length:", args.target_seq_length)
     print("num_prime:", args.num_prime)
