@@ -11,19 +11,35 @@ from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
 
 # MusicTransformer
 class MusicTransformer(nn.Module):
-    def __init__(self, args):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Music Transformer reproduction from https://arxiv.org/abs/1809.04281. Arguments allow for
+    tweaking the transformer architecture (https://arxiv.org/abs/1706.03762) and the rpr argument
+    toggles Relative Position Representations (RPR - https://arxiv.org/abs/1803.02155).
+
+    Supports training and generation using Pytorch's nn.Transformer class with dummy decoder to
+    make a decoder-only transformer architecture
+
+    For RPR support, there is modified Pytorch 1.2.0 code in rpr.py. Modified source will be
+    kept up to date with Pytorch revisions only as necessary.
+    ----------
+    """
+
+    def __init__(self, n_layers=6, num_heads=8, d_model=512, dim_feedforward=1024,
+                 dropout=0.1, max_sequence=2048, rpr=False):
         super(MusicTransformer, self).__init__()
 
         self.dummy      = DummyDecoder()
 
-        self.nlayers    = args.n_layers
-        self.nhead      = args.num_heads
-        self.d_model    = args.d_model
-        self.d_ff       = args.dim_feedforward
-        # self.ff_activ   = args.feedforward_activation
-        self.dropout    = args.dropout
-        self.max_seq    = args.max_sequence
-        self.rpr        = args.rpr
+        self.nlayers    = n_layers
+        self.nhead      = num_heads
+        self.d_model    = d_model
+        self.d_ff       = dim_feedforward
+        self.dropout    = dropout
+        self.max_seq    = max_sequence
+        self.rpr        = rpr
 
         # Input embedding
         self.embedding = nn.Embedding(VOCAB_SIZE, self.d_model)
@@ -55,6 +71,16 @@ class MusicTransformer(nn.Module):
 
     # forward
     def forward(self, x, mask=True):
+        """
+        ----------
+        Author: Damon Gwinn
+        ----------
+        Takes an input sequence and outputs predictions using a sequence to sequence method.
+
+        A prediction at one index is the "next" prediction given all information seen previously.
+        ----------
+        """
+
         if(mask is True):
             mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(TORCH_DEVICE)
         else:
@@ -84,6 +110,15 @@ class MusicTransformer(nn.Module):
 
     # generate
     def generate(self, primer=None, target_seq_length=1024, beam=0, beam_chance=1.0):
+        """
+        ----------
+        Author: Damon Gwinn
+        ----------
+        Generates midi given a primer sample. Music can be generated using a probability distribution over
+        the softmax probabilities (recommended) or by using a beam search.
+        ----------
+        """
+
         assert (not self.training), "Cannot generate while in training mode"
 
         print("Generating sequence of max length:", target_seq_length)
@@ -138,8 +173,25 @@ class MusicTransformer(nn.Module):
 # Used as a dummy to nn.Transformer
 # DummyDecoder
 class DummyDecoder(nn.Module):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    A dummy decoder that returns its input. Used to make the Pytorch transformer into a decoder-only
+    architecture (stacked encoders with dummy decoder fits the bill)
+    ----------
+    """
+
     def __init__(self):
         super(DummyDecoder, self).__init__()
 
     def forward(self, tgt, memory, tgt_mask, memory_mask,tgt_key_padding_mask,memory_key_padding_mask):
+        """
+        ----------
+        Author: Damon Gwinn
+        ----------
+        Returns the input (memory)
+        ----------
+        """
+
         return memory

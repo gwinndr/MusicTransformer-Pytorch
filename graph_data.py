@@ -5,11 +5,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def main():
+    """
+    ----------
+    Author: Ben Myrick
+    ----------
+    Entry point
+    ----------
+    """
+
     inputFolder = 'test_data/'
     outputFolder = 'outputGraphs/'
     parseInput(inputFolder, outputFolder)
 
 def parseInput(InputFolder, outputFolder):
+    """
+    ----------
+    Author: Ben Myrick
+    ----------
+    Graphs model training and evaluation data
+    ----------
+    """
+
     parser = argparse.ArgumentParser()
 
     #Initialize Loss and Accuracy arrays
@@ -30,16 +46,16 @@ def parseInput(InputFolder, outputFolder):
             ep_num = "epoch_" + str(x)
 
         path = InputFolder + ep_num + ".txt"
-        
+
         #Read file and parse accuracy and loss values
         file = open(path, 'r')
         temp_average_accuracy = file.readline()
         temp_average_loss = file.readline()
 
-        #Update accuracy and loss arrays for each epoch 
+        #Update accuracy and loss arrays for each epoch
         accuracy_arr.append(float(temp_average_accuracy))
-        loss_arr.append(float(temp_average_loss)) 
-        
+        loss_arr.append(float(temp_average_loss))
+
         epochs += [x]
 
     try:
@@ -48,7 +64,7 @@ def parseInput(InputFolder, outputFolder):
         print ("Creation of the directory %s failed" % path)
     else:
         print ("Successfully created the directory %s " % path)
-    
+
     #Create and save plots to output folder
     plt.plot(epochs,loss_arr)
     plt.ylabel('Loss')
