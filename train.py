@@ -19,6 +19,14 @@ from utilities.run_model import train_epoch, eval_model
 
 # main
 def main():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Entry point. Trains a model specified by command line arguments
+    ----------
+    """
+
     args = parse_train_args()
     print_train_args(args)
 

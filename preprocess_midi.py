@@ -9,6 +9,15 @@ JSON_FILE = "maestro-v2.0.0.json"
 
 # prep_midi
 def prep_midi(maestro_root, output_dir):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Pre-processes the maestro dataset, putting processed midi data (train, eval, test) into the
+    given output folder
+    ----------
+    """
+
     train_dir = os.path.join(output_dir, "train")
     os.makedirs(train_dir, exist_ok=True)
     val_dir = os.path.join(output_dir, "val")
@@ -67,6 +76,14 @@ def prep_midi(maestro_root, output_dir):
 
 # parse_args
 def parse_args():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Parses arguments for preprocess_midi using argparse
+    ----------
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("maestro_root", type=str, help="Root folder for the Maestro dataset")
@@ -76,6 +93,14 @@ def parse_args():
 
 # main
 def main():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Entry point. Preprocesses maestro and saved midi to specified output folder.
+    ----------
+    """
+
     args            = parse_args()
     maestro_root    = args.maestro_root
     output_dir      = args.output_dir

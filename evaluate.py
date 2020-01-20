@@ -12,6 +12,14 @@ from utilities.run_model import eval_model
 
 # main
 def main():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Entry point. Evaluates a model specified by command line arguments
+    ----------
+    """
+
     args = parse_eval_args()
     print_eval_args(args)
 

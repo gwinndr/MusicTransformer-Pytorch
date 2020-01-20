@@ -9,6 +9,14 @@ from dataset.e_piano import compute_epiano_accuracy
 
 # train_epoch
 def train_epoch(cur_epoch, model, dataloader, loss, opt, lr_scheduler=None):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Trains a single model epoch
+    ----------
+    """
+
     model.train()
     for batch_num, batch in enumerate(dataloader):
         time_before = time.time()
@@ -47,6 +55,14 @@ def train_epoch(cur_epoch, model, dataloader, loss, opt, lr_scheduler=None):
 
 # eval_model
 def eval_model(model, dataloader, loss):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Evaluates the model and prints the average loss and accuracy
+    ----------
+    """
+
     model.eval()
 
     avg_acc     = -1

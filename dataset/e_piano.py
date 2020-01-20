@@ -12,6 +12,18 @@ SEQUENCE_START = 0
 
 # EPianoDataset
 class EPianoDataset(Dataset):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Pytorch Dataset for the Maestro e-piano dataset (https://magenta.tensorflow.org/datasets/maestro).
+    Recommended to use with Dataloader (https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader)
+
+    Uses all files found in the given root directory of pre-processed (preprocess_midi.py)
+    Maestro midi files.
+    ----------
+    """
+
     def __init__(self, root, max_seq=2048, random_seq=True):
         self.root       = root
         self.max_seq    = max_seq
@@ -22,10 +34,28 @@ class EPianoDataset(Dataset):
 
     # __len__
     def __len__(self):
+        """
+        ----------
+        Author: Damon Gwinn
+        ----------
+        How many data files exist in the given directory
+        ----------
+        """
+
         return len(self.data_files)
 
     # __getitem__
     def __getitem__(self, idx):
+        """
+        ----------
+        Author: Damon Gwinn
+        ----------
+        Gets the indexed midi batch. Gets random sequence or from start depending on random_seq.
+
+        Returns the input and the target.
+        ----------
+        """
+
         # All data on cpu to allow for the Dataloader to multithread
         i_stream    = open(self.data_files[idx], "rb")
         # return pickle.load(i_stream), None
@@ -38,6 +68,15 @@ class EPianoDataset(Dataset):
 
 # process_midi
 def process_midi(raw_mid, max_seq, random_seq):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Takes in pre-processed raw midi and returns the input and target. Can use a random sequence or
+    go from the start based on random_seq.
+    ----------
+    """
+
     x   = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
     tgt = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
 
@@ -77,6 +116,15 @@ def process_midi(raw_mid, max_seq, random_seq):
 
 # create_epiano_datasets
 def create_epiano_datasets(dataset_root, max_seq, random_seq=True):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Creates train, evaluation, and test EPianoDataset objects for a pre-processed (preprocess_midi.py)
+    root containing train, val, and test folders.
+    ----------
+    """
+
     train_root = os.path.join(dataset_root, "train")
     val_root = os.path.join(dataset_root, "val")
     test_root = os.path.join(dataset_root, "test")
@@ -89,6 +137,15 @@ def create_epiano_datasets(dataset_root, max_seq, random_seq=True):
 
 # compute_epiano_accuracy
 def compute_epiano_accuracy(out, tgt):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Computes the average accuracy for the given input and output batches. Accuracy uses softmax
+    of the output.
+    ----------
+    """
+
     softmax = nn.Softmax(dim=-1)
     out = torch.argmax(softmax(out), dim=-1)
 

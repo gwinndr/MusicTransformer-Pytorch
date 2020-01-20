@@ -16,6 +16,14 @@ from utilities.tensors import create_tensor
 
 # main
 def main():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Entry point. Generates music from a model specified by command line arguments
+    ----------
+    """
+
     args = parse_generate_args()
     print_generate_args(args)
 

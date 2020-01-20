@@ -4,6 +4,14 @@ from .constants import SEPERATOR
 
 # parse_train_args
 def parse_train_args():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Argparse arguments for training a model
+    ----------
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-input_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
@@ -33,6 +41,14 @@ def parse_train_args():
 
 # print_train_args
 def print_train_args(args):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Prints training arguments
+    ----------
+    """
+
     print(SEPERATOR)
     print("input_dir:", args.input_dir)
     print("output_dir:", args.output_dir)
@@ -60,6 +76,14 @@ def print_train_args(args):
 
 # parse_eval_args
 def parse_eval_args():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Argparse arguments for evaluating a model
+    ----------
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-dataset_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
@@ -80,6 +104,14 @@ def parse_eval_args():
 
 # print_eval_args
 def print_eval_args(args):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Prints evaluation arguments
+    ----------
+    """
+
     print(SEPERATOR)
     print("dataset_dir:", args.dataset_dir)
     print("model_weights:", args.model_weights)
@@ -99,6 +131,14 @@ def print_eval_args(args):
 
 # parse_generate_args
 def parse_generate_args():
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Argparse arguments for generation
+    ----------
+    """
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-midi_root", type=str, default="./dataset/e_piano/", help="Midi file to prime the generator with")
@@ -122,6 +162,14 @@ def parse_generate_args():
 
 # print_generate_args
 def print_generate_args(args):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Prints generation arguments
+    ----------
+    """
+
     print(SEPERATOR)
     print("midi_root:", args.midi_root)
     print("output_dir:", args.output_dir)
@@ -144,6 +192,14 @@ def print_generate_args(args):
 
 # write_model_params
 def write_model_params(args, output_file):
+    """
+    ----------
+    Author: Damon Gwinn
+    ----------
+    Writes given training parameters to text file
+    ----------
+    """
+
     o_stream = open(output_file, "w")
 
     o_stream.write("rpr: " + str(args.rpr) + "\n")
