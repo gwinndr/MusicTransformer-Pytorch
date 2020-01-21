@@ -98,7 +98,7 @@ def graph_results(input_dirs="./saved_models", output_dir=None, model_names=None
         #Create and save plots to output folder
         plt.plot(epoch_counts[i], accuracy_arrs[i], label=name)
         plt.title("Accuracy Results")
-        plt.ylabel('Accuracy (%)')
+        plt.ylabel('Accuracy')
         plt.xlabel('Epochs')
         fig2 = plt.gcf()
 
