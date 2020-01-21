@@ -38,12 +38,10 @@ We trained a base and RPR model with the following parameters (taken from the pa
 
 ![Loss Results Graph](https://lh3.googleusercontent.com/u6AL9vIXG7gBeKuLlVJGFeex7-q2NYLbMqYVZGFI3qxWlpa6hAXdVlOsD52i4jKjrVcf4YZCGBaMIVIagcu_z-7Sg5YhDcgsqcs-p4aR48C287c1QraG0tRnHnmimLd8jizk9afW8g=w2400 "Loss Results")
 
-![Accuracy Results Graph](https://lh3.googleusercontent.com/HGK_UVwa9sbzwJH_myZ3eguMIp1ggww5iMXzCThwf5g0tYRAkfOLK6uykKSuRexmzJDFaea_XpEKP4156gb9HD1nQ8ihJ4BIVehmihiJNQJuf-Uj7dtU7Dk_QWSyhmd6CrgHDjFX2A=w2400 "Accuracy Results")
+![Accuracy Results Graph](https://lh3.googleusercontent.com/ajbanROlOAM9YrNDaHrv1tWM8tZ4nrcrTehwoHsaftnPPZ4xEBLG0RmBa4awYXntBQF0RR_Uh3bsLZv4mdzmZM_TNisMnreKsB2jZIY7iSZjQiL4kRumypymuxIiHu-VdPB0kUkILQ=w2400 "Accuracy Results")
 
 Best loss for *base* model: 1.99 on epoch 250  
 Best loss for *rpr* model: 1.92 on epoch 216
 
 ## Discussion
 The results were overall close to the results from the paper. Huang et al. reported a loss of around 1.8 for the base and rpr models on Maestro V1. We use Maestro V2 and perform no midi augmentations as they had discussed in their paper. Furthermore, [there are issues with how sustain is handled](https://github.com/jason9693/midi-neural-processor/pull/2) which can be observed by listening to some pre-processed midi files. More refinement with the addition of those augmentations and fixes may yield the loss results in line with the paper.
-
-
