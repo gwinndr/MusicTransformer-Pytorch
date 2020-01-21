@@ -6,7 +6,7 @@ This is a reproduction of the MusicTransformer (Huang et al., 2018) for Pytorch.
 
 ## TODO
 * Add music generation results
-* Write own midi pre-processor (sustain petal errors with jason's)
+* Write own midi pre-processor (sustain pedal errors with jason's)
    * Support any midi file beyond Maestro
 * Fixed length song generation
 * Midi augmentations from paper
