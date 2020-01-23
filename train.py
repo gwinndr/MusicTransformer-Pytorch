@@ -12,9 +12,9 @@ from model.music_transformer import MusicTransformer
 from model.loss import SmoothCrossEntropyLoss
 
 from utilities.constants import *
+from utilities.device import get_device, use_cuda
 from utilities.lr_scheduling import LrStepTracker, get_lr
 from utilities.argument_funcs import parse_train_args, print_train_args, write_model_params
-from utilities.tensors import create_random_tensor
 from utilities.run_model import train_epoch, eval_model
 
 # main
@@ -30,8 +30,14 @@ def main():
     args = parse_train_args()
     print_train_args(args)
 
+    if(args.force_cpu):
+        use_cuda(False)
+        print("WARNING: Forced CPU usage, expect model to perform slower")
+        print("")
+
     os.makedirs(args.output_dir, exist_ok=True)
 
+    # Output prep
     params_file = os.path.join(args.output_dir, "model_params.txt")
     write_model_params(args, params_file)
 
@@ -41,6 +47,7 @@ def main():
     results_folder = os.path.join(args.output_dir, "results")
     os.makedirs(results_folder, exist_ok=True)
 
+    # Datasets
     train_dataset, val_dataset, test_dataset = create_epiano_datasets(args.input_dir, args.max_sequence)
 
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, num_workers=args.n_workers, shuffle=True)
@@ -49,8 +56,9 @@ def main():
 
     model = MusicTransformer(n_layers=args.n_layers, num_heads=args.num_heads,
                 d_model=args.d_model, dim_feedforward=args.dim_feedforward, dropout=args.dropout,
-                max_sequence=args.max_sequence, rpr=args.rpr).to(TORCH_DEVICE)
+                max_sequence=args.max_sequence, rpr=args.rpr).to(get_device())
 
+    # Continuing from previous training session
     start_epoch = 0
     if(args.continue_weights is not None):
         if(args.continue_epoch is None):
@@ -59,7 +67,7 @@ def main():
         else:
             model.load_state_dict(torch.load(args.continue_weights))
             start_epoch = args.continue_epoch
-    elif(args.continue_epoch is None):
+    elif(args.continue_epoch is not None):
         print("ERROR: Need continue weights (-continue_weights) when using continue_epoch")
         return
 
@@ -78,12 +86,14 @@ def main():
     # Not smoothing evaluation loss
     eval_loss = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
 
+    # SmoothCrossEntropyLoss or CrossEntropyLoss for training
     if(args.ce_smoothing is None):
         train_loss = eval_loss
     else:
         train_loss = SmoothCrossEntropyLoss(args.ce_smoothing, VOCAB_SIZE, ignore_index=TOKEN_PAD)
 
-    opt     = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
+    # Optimizer
+    opt = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
 
     if(args.lr is None):
         lr_scheduler = LambdaLR(opt, lr_stepper.step)

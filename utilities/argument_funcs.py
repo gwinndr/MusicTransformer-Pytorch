@@ -18,6 +18,7 @@ def parse_train_args():
     parser.add_argument("-output_dir", type=str, default="./saved_models", help="Folder to save model weights. Saves one every epoch")
     parser.add_argument("-weight_modulus", type=int, default=1, help="How often to save epoch weights (ex: value of 10 means save every 10 epochs)")
     parser.add_argument("-n_workers", type=int, default=1, help="Number of threads for the dataloader")
+    parser.add_argument("--force_cpu", action="store_true", help="Forces model to run on a cpu even when gpu is available")
 
     parser.add_argument("-continue_weights", type=str, default=None, help="Model weights to continue training based on")
     parser.add_argument("-continue_epoch", type=int, default=None, help="Epoch the continue_weights model was at")
@@ -54,6 +55,7 @@ def print_train_args(args):
     print("output_dir:", args.output_dir)
     print("weight_modulus:", args.weight_modulus)
     print("n_workers:", args.n_workers)
+    print("force_cpu:", args.force_cpu)
     print("")
     print("continue_weights:", args.continue_weights)
     print("continue_epoch:", args.continue_epoch)
@@ -89,6 +91,7 @@ def parse_eval_args():
     parser.add_argument("-dataset_dir", type=str, default="./dataset/e_piano", help="Folder of preprocessed and pickled midi files")
     parser.add_argument("-model_weights", type=str, default="./saved_models/model.pickle", help="Pickled model weights file saved with torch.save and model.state_dict()")
     parser.add_argument("-n_workers", type=int, default=1, help="Number of threads for the dataloader")
+    parser.add_argument("--force_cpu", action="store_true", help="Forces model to run on a cpu even when gpu is available")
 
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
 
@@ -116,6 +119,7 @@ def print_eval_args(args):
     print("dataset_dir:", args.dataset_dir)
     print("model_weights:", args.model_weights)
     print("n_workers:", args.n_workers)
+    print("force_cpu:", args.force_cpu)
     print("")
     print("batch_size:", args.batch_size)
     print("")
@@ -144,6 +148,7 @@ def parse_generate_args():
     parser.add_argument("-midi_root", type=str, default="./dataset/e_piano/", help="Midi file to prime the generator with")
     parser.add_argument("-output_dir", type=str, default="./gen", help="Folder to write generated midi to")
     parser.add_argument("-primer_file", type=str, default=None, help="File path or integer index to the evaluation dataset. Default is to select a random index.")
+    parser.add_argument("--force_cpu", action="store_true", help="Forces model to run on a cpu even when gpu is available")
 
     parser.add_argument("-target_seq_length", type=int, default=1024, help="Target length you'd like the midi to be")
     parser.add_argument("-num_prime", type=int, default=256, help="Amount of messages to prime the generator with")
@@ -174,6 +179,7 @@ def print_generate_args(args):
     print("midi_root:", args.midi_root)
     print("output_dir:", args.output_dir)
     print("primer_file:", args.primer_file)
+    print("force_cpu:", args.force_cpu)
     print("")
     print("target_seq_length:", args.target_seq_length)
     print("num_prime:", args.num_prime)

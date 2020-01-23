@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
+from torch.nn.modules.normalization import LayerNorm
 import random
 
-from torch.nn.modules.normalization import LayerNorm
 from utilities.constants import *
-from utilities.tensors import create_full_tensor
+from utilities.device import get_device
+
 from .positional_encoding import PositionalEncoding
 from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
 
@@ -84,7 +85,7 @@ class MusicTransformer(nn.Module):
         """
 
         if(mask is True):
-            mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(TORCH_DEVICE)
+            mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(get_device())
         else:
             mask = None
 
@@ -125,10 +126,10 @@ class MusicTransformer(nn.Module):
 
         print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = create_full_tensor((1,target_seq_length), TOKEN_PAD, TORCH_LABEL_TYPE)
+        gen_seq = torch.full((1,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=get_device())
 
         num_primer = len(primer)
-        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(TORCH_DEVICE)
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(get_device())
 
 
         # print("primer:",primer)
