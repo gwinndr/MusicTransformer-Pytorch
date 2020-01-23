@@ -52,13 +52,16 @@ def main():
                 max_sequence=args.max_sequence, rpr=args.rpr).to(TORCH_DEVICE)
 
     start_epoch = 0
-    if(args.continue_epoch is not None):
+    if(args.continue_weights is not None):
         if(args.continue_epoch is None):
-            print("ERROR: Need epoch number of weights to continue from (-continue_epoch)")
+            print("ERROR: Need epoch number to continue from (-continue_epoch) when using continue_weights")
             return
         else:
             model.load_state_dict(torch.load(args.continue_weights))
             start_epoch = args.continue_epoch
+    elif(args.continue_epoch is None):
+        print("ERROR: Need continue weights (-continue_weights) when using continue_epoch")
+        return
 
     # Lr Scheduler vs static lr
     if(args.lr is None):
@@ -92,6 +95,7 @@ def main():
     best_loss       = float("inf")
     best_loss_epoch = -1
 
+    # TRAIN LOOP
     for epoch in range(start_epoch, args.epochs):
         print(SEPERATOR)
         print("NEW EPOCH:", epoch+1)

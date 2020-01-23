@@ -45,8 +45,12 @@ def main():
 
     else:
         raw_mid = encode_midi(f)
+        if(len(raw_mid) == 0):
+            print("Error: No midi messages in primer file:", f)
+            return
+
         primer, _  = process_midi(raw_mid, args.num_prime, random_seq=False)
-        primer = create_tensor(primer, TORCH_LABEL_TYPE, device=TORCH_CPU)
+        primer = create_tensor(primer, TORCH_LABEL_TYPE, device=TORCH_DEVICE)
 
         print("Using primer file:", f)
 

@@ -47,6 +47,7 @@ class MusicTransformer(nn.Module):
         # Positional encoding
         self.positional_encoding = PositionalEncoding(self.d_model, self.dropout, self.max_seq)
 
+        # Base transformer
         if(not self.rpr):
             # To make a decoder-only transformer we need to use masked encoder layers
             # Dummy decoder to essentially just return the encoder output
@@ -55,6 +56,7 @@ class MusicTransformer(nn.Module):
                 num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
                 dim_feedforward=self.d_ff, custom_decoder=self.dummy
             )
+        # RPR Transformer
         else:
             encoder_norm = LayerNorm(self.d_model)
             encoder_layer = TransformerEncoderLayerRPR(self.d_model, self.nhead, self.d_ff, self.dropout, er_len=self.max_seq)
@@ -134,8 +136,8 @@ class MusicTransformer(nn.Module):
         cur_i = num_primer
         while(cur_i < target_seq_length):
             # gen_seq_batch     = gen_seq.clone()
-            y           = self.softmax(self.forward(gen_seq[..., :cur_i]))[..., :TOKEN_END]
-            token_probs  = y[:, cur_i-1, :]
+            y = self.softmax(self.forward(gen_seq[..., :cur_i]))[..., :TOKEN_END]
+            token_probs = y[:, cur_i-1, :]
 
             if(beam == 0):
                 beam_ran = 2.0

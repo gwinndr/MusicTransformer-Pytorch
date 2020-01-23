@@ -394,16 +394,12 @@ def multi_head_attention_forward_rpr(query,                       # type: Tensor
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
     assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, src_len]
 
-    # Where rpr happens
+    ######### ADDITION OF RPR ###########
     if(rpr_mat is not None):
-        # print("q.shape:", q.shape)
-        # print("rpr_mat.shape:", rpr_mat.shape)
-        # print("k.shape:", k.shape)
         rpr_mat = _get_valid_embedding(rpr_mat, q.shape[1], k.shape[1])
         qe = torch.einsum("hld,md->hlm", q, rpr_mat)
         srel = _skew(qe)
 
-        # print("not implemented")
         attn_output_weights += srel
 
     if attn_mask is not None:
