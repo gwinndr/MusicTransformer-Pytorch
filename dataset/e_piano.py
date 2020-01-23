@@ -6,7 +6,7 @@ import torch.nn as nn
 from torch.utils.data import Dataset
 
 from utilities.constants import *
-from utilities.tensors import create_tensor, create_full_tensor
+from utilities.device import cpu_device
 
 SEQUENCE_START = 0
 
@@ -59,7 +59,7 @@ class EPianoDataset(Dataset):
         # All data on cpu to allow for the Dataloader to multithread
         i_stream    = open(self.data_files[idx], "rb")
         # return pickle.load(i_stream), None
-        raw_mid     = create_tensor(pickle.load(i_stream), TORCH_LABEL_TYPE, device=TORCH_CPU)
+        raw_mid     = torch.tensor(pickle.load(i_stream), dtype=TORCH_LABEL_TYPE, device=cpu_device())
         i_stream.close()
 
         x, tgt = process_midi(raw_mid, self.max_seq, self.random_seq)
@@ -77,8 +77,8 @@ def process_midi(raw_mid, max_seq, random_seq):
     ----------
     """
 
-    x   = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
-    tgt = create_full_tensor((max_seq, ), TOKEN_PAD, TORCH_LABEL_TYPE, device=TORCH_CPU)
+    x   = torch.full((max_seq, ), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=cpu_device())
+    tgt = torch.full((max_seq, ), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=cpu_device())
 
     raw_len     = len(raw_mid)
     full_seq    = max_seq + 1 # Performing seq2seq

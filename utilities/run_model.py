@@ -2,6 +2,7 @@ import torch
 import time
 
 from .constants import *
+from utilities.device import get_device
 from .lr_scheduling import get_lr
 
 from dataset.e_piano import compute_epiano_accuracy
@@ -23,8 +24,8 @@ def train_epoch(cur_epoch, model, dataloader, loss, opt, lr_scheduler=None):
 
         opt.zero_grad()
 
-        x       = batch[0].to(TORCH_DEVICE)
-        tgt     = batch[1].to(TORCH_DEVICE)
+        x   = batch[0].to(get_device())
+        tgt = batch[1].to(get_device())
 
         y = model(x)
 
@@ -72,8 +73,8 @@ def eval_model(model, dataloader, loss):
         sum_loss   = 0.0
         sum_acc    = 0.0
         for batch in dataloader:
-            x       = batch[0].to(TORCH_DEVICE)
-            tgt     = batch[1].to(TORCH_DEVICE)
+            x   = batch[0].to(get_device())
+            tgt = batch[1].to(get_device())
 
             y = model(x)
 

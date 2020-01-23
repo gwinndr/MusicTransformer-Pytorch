@@ -1,10 +1,11 @@
 import torch
 import torch.nn as nn
+from torch.nn.modules.normalization import LayerNorm
 import random
 
-from torch.nn.modules.normalization import LayerNorm
 from utilities.constants import *
-from utilities.tensors import create_full_tensor
+from utilities.device import get_device
+
 from .positional_encoding import PositionalEncoding
 from .rpr import TransformerEncoderRPR, TransformerEncoderLayerRPR
 
@@ -47,6 +48,7 @@ class MusicTransformer(nn.Module):
         # Positional encoding
         self.positional_encoding = PositionalEncoding(self.d_model, self.dropout, self.max_seq)
 
+        # Base transformer
         if(not self.rpr):
             # To make a decoder-only transformer we need to use masked encoder layers
             # Dummy decoder to essentially just return the encoder output
@@ -55,6 +57,7 @@ class MusicTransformer(nn.Module):
                 num_decoder_layers=0, dropout=self.dropout, # activation=self.ff_activ,
                 dim_feedforward=self.d_ff, custom_decoder=self.dummy
             )
+        # RPR Transformer
         else:
             encoder_norm = LayerNorm(self.d_model)
             encoder_layer = TransformerEncoderLayerRPR(self.d_model, self.nhead, self.d_ff, self.dropout, er_len=self.max_seq)
@@ -82,7 +85,7 @@ class MusicTransformer(nn.Module):
         """
 
         if(mask is True):
-            mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(TORCH_DEVICE)
+            mask = self.transformer.generate_square_subsequent_mask(x.shape[1]).to(get_device())
         else:
             mask = None
 
@@ -123,10 +126,10 @@ class MusicTransformer(nn.Module):
 
         print("Generating sequence of max length:", target_seq_length)
 
-        gen_seq = create_full_tensor((1,target_seq_length), TOKEN_PAD, TORCH_LABEL_TYPE)
+        gen_seq = torch.full((1,target_seq_length), TOKEN_PAD, dtype=TORCH_LABEL_TYPE, device=get_device())
 
         num_primer = len(primer)
-        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(TORCH_DEVICE)
+        gen_seq[..., :num_primer] = primer.type(TORCH_LABEL_TYPE).to(get_device())
 
 
         # print("primer:",primer)
@@ -134,8 +137,8 @@ class MusicTransformer(nn.Module):
         cur_i = num_primer
         while(cur_i < target_seq_length):
             # gen_seq_batch     = gen_seq.clone()
-            y           = self.softmax(self.forward(gen_seq[..., :cur_i]))[..., :TOKEN_END]
-            token_probs  = y[:, cur_i-1, :]
+            y = self.softmax(self.forward(gen_seq[..., :cur_i]))[..., :TOKEN_END]
+            token_probs = y[:, cur_i-1, :]
 
             if(beam == 0):
                 beam_ran = 2.0

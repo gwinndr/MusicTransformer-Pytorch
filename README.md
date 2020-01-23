@@ -10,6 +10,7 @@ This is a reproduction of the MusicTransformer (Huang et al., 2018) for Pytorch.
    * Support any midi file beyond Maestro
 * Fixed length song generation
 * Midi augmentations from paper
+* Multi-GPU support
 * Experiment with tensorboard for result reporting
 
 ## How to run

@@ -20,16 +20,6 @@ TOKEN_PAD               = TOKEN_END + 1
 
 VOCAB_SIZE              = TOKEN_PAD + 1
 
-TORCH_CPU               = torch.device("cpu")
-if(torch.cuda.device_count() > 0):
-    TORCH_DEVICE = torch.device("cuda")
-else:
-    print(SEPERATOR)
-    print("WARNING: Using the cpu. This will cause the model to run very slow!")
-    print(SEPERATOR)
-    print("")
-    TORCH_DEVICE = TORCH_CPU
-
 TORCH_FLOAT             = torch.float32
 TORCH_INT               = torch.int32
 
