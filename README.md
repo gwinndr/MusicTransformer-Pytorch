@@ -4,8 +4,16 @@ Currently supports Pytorch >= 1.2.0 with Python >= 3.6
 ## About
 This is a reproduction of the MusicTransformer (Huang et al., 2018) for Pytorch. This implementation utilizes the generic Transformer implementation introduced in Pytorch 1.2.0 (https://pytorch.org/docs/stable/nn.html#torch.nn.Transformer).
 
+## Generated Music:
+Some various music results (midi and mp3) are in the following Google Drive folder:  
+https://drive.google.com/drive/folders/1qS4z_7WV4LLgXZeVZU9IIjatK7dllKrc?usp=sharing
+
+See the results section for the model hyperparameters used for generation.
+
+Mp3 results were played through a [Kawai MP11SE](https://kawaius.com/product/mp11se/). 
+In order to play .mid files, we used [Midi Editor](https://www.midieditor.org/) which is free to use and open source.
+
 ## TODO
-* Add music generation results
 * Write own midi pre-processor (sustain pedal errors with jason's)
    * Support any midi file beyond Maestro
 * Fixed length song generation
@@ -46,3 +54,6 @@ Best loss for *rpr* model: 1.92 on epoch 216
 
 ## Discussion
 The results were overall close to the results from the paper. Huang et al. reported a loss of around 1.8 for the base and rpr models on Maestro V1. We use Maestro V2 and perform no midi augmentations as they had discussed in their paper. Furthermore, [there are issues with how sustain is handled](https://github.com/jason9693/midi-neural-processor/pull/2) which can be observed by listening to some pre-processed midi files. More refinement with the addition of those augmentations and fixes may yield the loss results in line with the paper.
+
+
+
