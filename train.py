@@ -161,15 +161,28 @@ def main():
             tensorboard_summary.add_scalar("Learn_rate/train", get_lr(opt), global_step=epoch+1)
             tensorboard_summary.flush()
 
+        new_best = False
+
         if(eval_acc > best_eval_acc):
             best_eval_acc = eval_acc
             best_eval_acc_epoch  = epoch+1
             torch.save(model.state_dict(), best_acc_file)
+            new_best = True
 
         if(eval_loss < best_eval_loss):
             best_eval_loss       = eval_loss
             best_eval_loss_epoch = epoch+1
             torch.save(model.state_dict(), best_loss_file)
+            new_best = True
+
+        # Writing out new bests
+        if(new_best):
+            with open(best_text, "w") as o_stream:
+                print("Best eval acc epoch:", best_eval_acc_epoch, file=o_stream)
+                print("Best eval acc:", best_eval_acc, file=o_stream)
+                print("")
+                print("Best eval loss epoch:", best_eval_loss_epoch, file=o_stream)
+                print("Best eval loss:", best_eval_loss, file=o_stream)
 
         if((epoch+1) % args.weight_modulus == 0):
             epoch_str = str(epoch+1).zfill(PREPEND_ZEROS_WIDTH)
@@ -183,13 +196,6 @@ def main():
     # Sanity check just to make sure everything is gone
     if(not args.no_tensorboard):
         tensorboard_summary.flush()
-
-    with open(best_text, "w") as o_stream:
-        print("Best eval acc epoch:", best_eval_acc_epoch, file=o_stream)
-        print("Best eval acc:", best_eval_acc, file=o_stream)
-        print("")
-        print("Best eval loss epoch:", best_eval_loss_epoch, file=o_stream)
-        print("Best eval loss:", best_eval_loss, file=o_stream)
 
     return
 
