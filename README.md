@@ -35,7 +35,7 @@ As an example to train a model using the parameters specified in results:
 ```
 python train.py -output_dir rpr --rpr 
 ```
-You can additonally specify both a weight and print modulus that determine what epochs to save weights and what batches to print.
+You can additonally specify both a weight and print modulus that determine what epochs to save weights and what batches to print. The weights that achieved the best loss and the best accuracy (separate) are always stored in results, regardless of weight modulus input.
 
 ### Evaluation
 You can evaluate a model using;
@@ -51,7 +51,7 @@ You can generate a piece with a trained model by using:
 python generate.py -output_dir output -model_weights rpr/results/best_acc_weights.pickle --rpr
 ```
 
-The default generation method is a probability distribution over the softmaxed output. You can also use beam search but this simply does not work well and is not recommended.
+The default generation method is a sampled probability distribution with the softmaxed output as the weights. You can also use beam search but this simply does not work well and is not recommended.
 
 ## Pytorch Transformer
 We used the Transformer class provided since Pytorch 1.2.0 (https://pytorch.org/docs/stable/nn.html#torch.nn.Transformer). The provided Transformer assumes an encoder-decoder architecture. To make it decoder-only like the Music Transformer, you use stacked encoders with a custom dummy decoder. This decoder-only model can be found in model/music_transformer.py.
