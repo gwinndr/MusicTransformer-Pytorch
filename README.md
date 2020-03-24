@@ -19,14 +19,39 @@ In order to play .mid files, we used [Midi Editor](https://www.midieditor.org/) 
 * Fixed length song generation
 * Midi augmentations from paper
 * Multi-GPU support
-* Experiment with tensorboard for result reporting
 
 ## How to run
 You will firstly need to download the Maestro dataset (we used v2 but v1 should work as well). You can download the dataset [here](https://magenta.tensorflow.org/datasets/maestro) (you only need the midi version if you're tight on space). We use the midi pre-processor provided by jason9693 et al. (https://github.com/jason9693/midi-neural-processor) to convert the midi into discrete ordered message types for training and evaluating.
 
-First run third_party/get_code.sh to download the midi pre-processor from github. If on Windows, look at the code and you'll see what to do (it's very simple :D). After, run preprocess_midi.py with --help for details. The result will be a pre-processed folder with a train, val, and test split as provided by Maestro's recommendation.
+First run get_code.sh in third_party to download the midi pre-processor from github. If on Windows, look at the code and you'll see what to do (it's very simple :D). After, run preprocess_midi.py with --help for details. The result will be a pre-processed folder with a train, val, and test split as provided by Maestro's recommendation.
 
 To train a model, run train.py. Use --help to see the tweakable parameters. See the results section for details on model performance. After training models, you can evaluate them with evaluate.py and generate a midi piece with generate.py. To graph and compare results visually, use graph_results.py.
+
+For the most part, you can just leave most arguments at their default values. If you are using a different dataset location or other such things, you will need to specify that in the arguments. Beyond that, the average user does not have to worry about most of the arguments.
+
+### Training
+As an example to train a model using the parameters specified in results:
+
+```
+python train.py -output_dir rpr --rpr 
+```
+You can additonally specify both a weight and print modulus that determine what epochs to save weights and what batches to print.
+
+### Evaluation
+You can evaluate a model using;
+```
+python evaluate.py -model_weights rpr/results/best_acc_weights.pickle --rpr
+```
+
+Your model's results may vary because a random sequence start position is chosen for each evaluation piece. This may be changed in the future.
+
+### Generation
+You can generate a piece with a trained model by using:
+```
+python generate.py -output_dir output -model_weights rpr/results/best_acc_weights.pickle --rpr
+```
+
+The default generation method is a probability distribution over the softmaxed output. You can also use beam search but this simply does not work well and is not recommended.
 
 ## Pytorch Transformer
 We used the Transformer class provided since Pytorch 1.2.0 (https://pytorch.org/docs/stable/nn.html#torch.nn.Transformer). The provided Transformer assumes an encoder-decoder architecture. To make it decoder-only like the Music Transformer, you use stacked encoders with a custom dummy decoder. This decoder-only model can be found in model/music_transformer.py.
@@ -45,9 +70,18 @@ We trained a base and RPR model with the following parameters (taken from the pa
 * **dim_feedforward**: 1024
 * **dropout**: 0.1
 
+The following graphs were generated with the command: 
+```
+python graph_results.py -input_dirs base_model/results?rpr_model/results -model_names base?rpr
+```
+
+Note, multiple input models are separated with a '?'
+
 ![Loss Results Graph](https://lh3.googleusercontent.com/u6AL9vIXG7gBeKuLlVJGFeex7-q2NYLbMqYVZGFI3qxWlpa6hAXdVlOsD52i4jKjrVcf4YZCGBaMIVIagcu_z-7Sg5YhDcgsqcs-p4aR48C287c1QraG0tRnHnmimLd8jizk9afW8g=w2400 "Loss Results")
 
 ![Accuracy Results Graph](https://lh3.googleusercontent.com/ajbanROlOAM9YrNDaHrv1tWM8tZ4nrcrTehwoHsaftnPPZ4xEBLG0RmBa4awYXntBQF0RR_Uh3bsLZv4mdzmZM_TNisMnreKsB2jZIY7iSZjQiL4kRumypymuxIiHu-VdPB0kUkILQ=w2400 "Accuracy Results")
+
+![Learn Rate Results Graph](https://lh3.googleusercontent.com/Gz8N8tgHN2qstvdq77GqQQiukWjwBUettMK8IYV0228il5NvRdrnoISS5HTrxd7xVOrRpSzTtLlRppT-UwWJ2ke1XnAsRMbJ0bCElSvCQAA_z08HSZjbJ4wQXBbg4lVzuGdikEN5Ug=w2400 "Learn Rate Results")
 
 Best loss for *base* model: 1.99 on epoch 250  
 Best loss for *rpr* model: 1.92 on epoch 216
