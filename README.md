@@ -1,5 +1,7 @@
 # Music Transformer
-Currently supports Pytorch >= 1.2.0 with Python >= 3.6
+Currently supports Pytorch >= 1.2.0 with Python >= 3.6  
+
+There is now a much friendlier [Google Colab version](https://github.com/asigalov61/SuperPiano/blob/master/Super_Piano_3.ipynb) of this project courtesy of [Alex](https://github.com/asigalov61)! 
 
 ## About
 This is a reproduction of the MusicTransformer (Huang et al., 2018) for Pytorch. This implementation utilizes the generic Transformer implementation introduced in Pytorch 1.2.0 (https://pytorch.org/docs/stable/nn.html#torch.nn.Transformer).
