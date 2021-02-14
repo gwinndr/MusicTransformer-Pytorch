@@ -29,9 +29,10 @@ def main():
         print("WARNING: Forced CPU usage, expect model to perform slower")
         print("")
 
-    # Test dataset
-    _, _, test_dataset = create_epiano_datasets(args.dataset_dir, args.max_sequence)
+    # We will evaluate the test_dataset and eval_dataset
+    _, eval_dataset, test_dataset = create_epiano_datasets(args.dataset_dir, args.max_sequence)
 
+    eval_loader = DataLoader(eval_dataset, batch_size=args.batch_size, num_workers=args.n_workers)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, num_workers=args.n_workers)
 
     model = MusicTransformer(n_layers=args.n_layers, num_heads=args.num_heads,
@@ -40,16 +41,24 @@ def main():
 
     model.load_state_dict(torch.load(args.model_weights))
 
-    # No smoothed loss
-    loss = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
+    if(args.ce_smoothing is None):
+        loss_func = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
+    else:
+        loss_func = SmoothCrossEntropyLoss(args.ce_smoothing, VOCAB_SIZE, ignore_index=TOKEN_PAD)
 
     print("Evaluating:")
     model.eval()
 
-    avg_loss, avg_acc = eval_model(model, test_loader, loss)
+    avg_eval_loss, avg_eval_acc = eval_model(model, eval_loader, loss_func)
+    avg_test_loss, avg_test_acc = eval_model(model, test_loader, loss_func)
 
-    print("Avg loss:", avg_loss)
-    print("Avg acc:", avg_acc)
+    print("Average accuracy and loss on the evaluation set and the test set")
+    print("Eval represents a 'lab' environment while Test represents the model 'in the wild'")
+    print("")
+    print("Avg eval loss:", avg_eval_loss)
+    print("Avg eval acc:", avg_eval_acc)
+    print("Avg test loss:", avg_test_loss)
+    print("Avg test acc:", avg_test_acc)
     print(SEPERATOR)
     print("")
 

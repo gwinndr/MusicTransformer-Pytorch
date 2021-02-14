@@ -100,6 +100,7 @@ def parse_eval_args():
     parser.add_argument("--force_cpu", action="store_true", help="Forces model to run on a cpu even when gpu is available")
 
     parser.add_argument("-batch_size", type=int, default=2, help="Batch size to use")
+    parser.add_argument("-ce_smoothing", type=float, default=None, help="Smoothing parameter for smoothed cross entropy loss (defaults to no smoothing)")
 
     parser.add_argument("--rpr", action="store_true", help="Use a modified Transformer for Relative Position Representations")
     parser.add_argument("-max_sequence", type=int, default=2048, help="Maximum midi sequence to consider in the model")
@@ -128,6 +129,7 @@ def print_eval_args(args):
     print("force_cpu:", args.force_cpu)
     print("")
     print("batch_size:", args.batch_size)
+    print("ce_smoothing:", args.ce_smoothing)
     print("")
     print("rpr:", args.rpr)
     print("max_sequence:", args.max_sequence)

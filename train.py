@@ -21,7 +21,7 @@ from utilities.run_model import train_epoch, eval_model
 CSV_HEADER = ["Epoch", "Learn rate", "Avg Train loss", "Train Accuracy", "Avg Eval loss", "Eval accuracy"]
 
 # Baseline is an untrained epoch that we evaluate as a baseline loss and accuracy
-BASELINE_EPOCH = -1
+BASELINE_EPOCH_IDX = -1
 
 # main
 def main():
@@ -79,7 +79,7 @@ def main():
                 max_sequence=args.max_sequence, rpr=args.rpr).to(get_device())
 
     ##### Continuing from previous training session #####
-    start_epoch = BASELINE_EPOCH
+    start_epoch = BASELINE_EPOCH_IDX
     if(args.continue_weights is not None):
         if(args.continue_epoch is None):
             print("ERROR: Need epoch number to continue from (-continue_epoch) when using continue_weights")
@@ -103,14 +103,11 @@ def main():
     else:
         lr = args.lr
 
-    ##### Not smoothing evaluation loss #####
-    eval_loss_func = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
-
-    ##### SmoothCrossEntropyLoss or CrossEntropyLoss for training #####
+    ##### Smooth or unsmoothed cross entropy loss #####
     if(args.ce_smoothing is None):
-        train_loss_func = eval_loss_func
+        loss_func = nn.CrossEntropyLoss(ignore_index=TOKEN_PAD)
     else:
-        train_loss_func = SmoothCrossEntropyLoss(args.ce_smoothing, VOCAB_SIZE, ignore_index=TOKEN_PAD)
+        loss_func = SmoothCrossEntropyLoss(args.ce_smoothing, VOCAB_SIZE, ignore_index=TOKEN_PAD)
 
     ##### Optimizer #####
     opt = Adam(model.parameters(), lr=lr, betas=(ADAM_BETA_1, ADAM_BETA_2), eps=ADAM_EPSILON)
@@ -134,16 +131,19 @@ def main():
 
 
     ##### TRAIN LOOP #####
-    for epoch in range(start_epoch, args.epochs):
-        # Baseline has no training and acts as a base loss and accuracy (epoch 0 in a sense)
-        if(epoch > BASELINE_EPOCH):
+    for epoch_idx in range(start_epoch, args.epochs):
+        # Convert epoch idx to epoch num
+        epoch = epoch_idx + 1
+
+        # Baseline has no training and acts as a base loss and accuracy
+        if(epoch_idx > BASELINE_EPOCH_IDX):
             print(SEPERATOR)
-            print("NEW EPOCH:", epoch+1)
+            print("NEW EPOCH:", epoch)
             print(SEPERATOR)
             print("")
 
             # Train
-            train_epoch(epoch+1, model, train_loader, train_loss_func, opt, lr_scheduler, args.print_modulus)
+            train_epoch(epoch, model, train_loader, train_loss_func, opt, lr_scheduler, args.print_modulus)
 
             print(SEPERATOR)
             print("Evaluating:")
@@ -151,14 +151,16 @@ def main():
             print(SEPERATOR)
             print("Baseline model evaluation (Epoch 0):")
 
-        # Eval
-        train_loss, train_acc = eval_model(model, train_loader, train_loss_func)
-        eval_loss, eval_acc = eval_model(model, test_loader, eval_loss_func)
+        # Evaluate
+        # We want to evaluate using the evaluation dataset, test dataset should only be
+        # used to evaluate a final model
+        train_loss, train_acc = eval_model(model, train_loader, loss_func)
+        eval_loss, eval_acc = eval_model(model, val_loader, loss_func)
 
         # Learn rate
         lr = get_lr(opt)
 
-        print("Epoch:", epoch+1)
+        print("Epoch:", epoch)
         print("Avg train loss:", train_loss)
         print("Avg train acc:", train_acc)
         print("Avg eval loss:", eval_loss)
@@ -170,13 +172,13 @@ def main():
 
         if(eval_acc > best_eval_acc):
             best_eval_acc = eval_acc
-            best_eval_acc_epoch  = epoch+1
+            best_eval_acc_epoch = epoch
             torch.save(model.state_dict(), best_acc_file)
             new_best = True
 
         if(eval_loss < best_eval_loss):
             best_eval_loss       = eval_loss
-            best_eval_loss_epoch = epoch+1
+            best_eval_loss_epoch = epoch
             torch.save(model.state_dict(), best_loss_file)
             new_best = True
 
@@ -191,23 +193,23 @@ def main():
 
 
         if(not args.no_tensorboard):
-            tensorboard_summary.add_scalar("Avg_CE_loss/train", train_loss, global_step=epoch+1)
-            tensorboard_summary.add_scalar("Avg_CE_loss/eval", eval_loss, global_step=epoch+1)
-            tensorboard_summary.add_scalar("Accuracy/train", train_acc, global_step=epoch+1)
-            tensorboard_summary.add_scalar("Accuracy/eval", eval_acc, global_step=epoch+1)
-            tensorboard_summary.add_scalar("Learn_rate/train", lr, global_step=epoch+1)
+            tensorboard_summary.add_scalar("Avg_CE_loss/train", train_loss, global_step=epoch)
+            tensorboard_summary.add_scalar("Avg_CE_loss/eval", eval_loss, global_step=epoch)
+            tensorboard_summary.add_scalar("Accuracy/train", train_acc, global_step=epoch)
+            tensorboard_summary.add_scalar("Accuracy/eval", eval_acc, global_step=epoch)
+            tensorboard_summary.add_scalar("Learn_rate/train", lr, global_step=epoch)
             tensorboard_summary.flush()
 
-        if((epoch+1) % args.weight_modulus == 0):
-            epoch_str = str(epoch+1).zfill(PREPEND_ZEROS_WIDTH)
+        if((epoch) % args.weight_modulus == 0):
+            epoch_str = str(epoch).zfill(PREPEND_ZEROS_WIDTH)
             path = os.path.join(weights_folder, "epoch_" + epoch_str + ".pickle")
             torch.save(model.state_dict(), path)
 
         with open(results_file, "a", newline="") as o_stream:
             writer = csv.writer(o_stream)
-            writer.writerow([epoch+1, lr, train_loss, train_acc, eval_loss, eval_acc])
+            writer.writerow([epoch, lr, train_loss, train_acc, eval_loss, eval_acc])
 
-    # Sanity check just to make sure everything is gone
+    # Sanity check just to make sure everything is written out
     if(not args.no_tensorboard):
         tensorboard_summary.flush()
 
