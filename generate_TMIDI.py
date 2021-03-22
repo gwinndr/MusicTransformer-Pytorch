@@ -91,7 +91,7 @@ def main():
 
     output.instruments.append(piano)
     # Write out the MIDI data
-    output.write(f_path)
+    output.write(f_path+'.mid')
     print('Saved as', f_path+'.mid')
 
     # GENERATION
@@ -120,7 +120,7 @@ def main():
 
             output.instruments.append(piano)
             # Write out the MIDI data
-            output.write(f_path)
+            output.write(f_path+'.mid')
             print('Saved as', f_path+'.mid')
 
         else:
@@ -148,7 +148,7 @@ def main():
 
             output.instruments.append(piano)
             # Write out the MIDI data
-            output.write(f_path)
+            output.write(f_path+'.mid')
             print('Saved as', f_path+'.mid')
 
 if __name__ == "__main__":
