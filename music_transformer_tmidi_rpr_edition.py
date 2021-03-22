@@ -23,7 +23,7 @@ Original file is located at
 !nvidia-smi
 
 #@title Clone/Install all dependencies
-!git clone https://github.com/asigalov61/MusicTransformer-Pytorch
+!git clone https://github.com/Tegridy-Code/MusicTransformer-Pytorch
 !git clone https://github.com/asigalov61/tegridy-tools
 !cp /content/tegridy-tools/tegridy-tools/TMIDI.py /content/MusicTransformer-Pytorch
 
