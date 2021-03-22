@@ -79,6 +79,14 @@ from IPython.display import display, Javascript, HTML, Audio
 
 """# Process your own custom MIDI DataSet"""
 
+#@title Create IO dirs
+
+!mkdir /content/MusicTransformer-Pytorch/dataset/e_piano
+!mkdir /content/MusicTransformer-Pytorch/dataset/e_piano/custom_midis
+!mkdir /content/MusicTransformer-Pytorch/dataset/e_piano/test
+!mkdir /content/MusicTransformer-Pytorch/dataset/e_piano/train
+!mkdir /content/MusicTransformer-Pytorch/dataset/e_piano/val
+
 # Commented out IPython magic to ensure Python compatibility.
 #@title Upload your custom MIDI DataSet to created "dataset/e_piano/custom_midis" folder through this cell or manually through any other means. You can also use the dataset below.
 from google.colab import files
@@ -104,7 +112,7 @@ for fn in uploaded.keys():
 !rm maestro-v3.0.0-midi.zip
 
 # Commented out IPython magic to ensure Python compatibility.
-#@title Tegridy Piano Transformer Dataset dataset
+#@title Tegridy Piano Transformer Dataset
 # %cd /content/MusicTransformer-Pytorch/dataset/e_piano/custom_midis
 !wget 'https://github.com/asigalov61/Tegridy-MIDI-Dataset/raw/master/Tegridy-Piano-Transformer-Dataset-CC-BY-NC-SA.zip'
 !unzip -j 'Tegridy-Piano-Transformer-Dataset-CC-BY-NC-SA.zip'
@@ -146,7 +154,7 @@ def process_midi(path):
         acc_notes[i].end = round(acc_notes[i].end,2)
     main_notes.sort(key = lambda x:x.start)
     acc_notes.sort(key = lambda x:x.start)
-    mpr = MidiEventProcessor()
+    mpr = TMIDI.Tegridy_RPR_MidiEventProcessor()
     repr_seq = mpr.encode(acc_notes)
     total += len(repr_seq)
     print('Converted file:', path)
@@ -234,16 +242,17 @@ for file in fileList:
       o_stream = open(o_file, "wb")
       pickle.dump(prepped, o_stream)
       o_stream.close()
-   
+
       print(file)
       print(o_file)
       print('Coverted!')
 
     except KeyboardInterrupt: 
-      raise   
+      raise
+
     except:
       print('Bad file. Skipping...', file)
-      continue
+    #continue
 
 print('Done')
 print("Num Train:", train_count)
