@@ -1,6 +1,10 @@
 import torch
 
-from third_party.midi_processor.processor import RANGE_NOTE_ON, RANGE_NOTE_OFF, RANGE_VEL, RANGE_TIME_SHIFT
+RANGE_NOTE_ON = 128
+RANGE_NOTE_OFF = 128
+RANGE_VEL = 32
+RANGE_TIME_SHIFT = 100
+
 
 SEPERATOR               = "========================="
 
