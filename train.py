@@ -143,7 +143,7 @@ def main():
             print("")
 
             # Train
-            train_epoch(epoch, model, train_loader, train_loss_func, opt, lr_scheduler, args.print_modulus)
+            train_epoch(epoch, model, train_loader, loss_func, opt, lr_scheduler, args.print_modulus)
 
             print(SEPERATOR)
             print("Evaluating:")
@@ -161,10 +161,10 @@ def main():
         lr = get_lr(opt)
 
         print("Epoch:", epoch)
-        print("Avg train loss:", train_loss)
-        print("Avg train acc:", train_acc)
-        print("Avg eval loss:", eval_loss)
-        print("Avg eval acc:", eval_acc)
+        print("Avg train loss: %.4f" % train_loss)
+        print("Avg train acc: %.4f" % train_acc)
+        print("Avg eval loss: %.4f" % eval_loss)
+        print("Avg eval acc: %.4f" % eval_acc)
         print(SEPERATOR)
         print("")
 
