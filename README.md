@@ -25,11 +25,15 @@ In order to play .mid files, we used [Midi Editor](https://www.midieditor.org/) 
 * Multi-GPU support
 
 ## How to run
-You will firstly need to download the Maestro dataset (we used v2 but v1 should work as well). You can download the dataset [here](https://magenta.tensorflow.org/datasets/maestro) (you only need the midi version if you're tight on space). We use the midi pre-processor provided by jason9693 et al. (https://github.com/jason9693/midi-neural-processor) to convert the midi into discrete ordered message types for training and evaluating.
+1. Download the Maestro dataset (we used v2 but v1 should work as well). You can download the dataset [here](https://magenta.tensorflow.org/datasets/maestro). You only need the MIDI version if you're tight on space. 
 
-First run get_code.sh in third_party to download the midi pre-processor from github. If on Windows, look at the code and you'll see what to do (it's very simple :D). After, run preprocess_midi.py with --help for details. The result will be a pre-processed folder with a train, val, and test split as provided by Maestro's recommendation.
+2. Run `git submodule update --init --recursive` to get the MIDI pre-processor provided by jason9693 et al. (https://github.com/jason9693/midi-neural-processor), which is used to convert the MIDI file into discrete ordered message types for training and evaluating. 
 
-To train a model, run train.py. Use --help to see the tweakable parameters. See the results section for details on model performance. After training models, you can evaluate them with evaluate.py and generate a midi piece with generate.py. To graph and compare results visually, use graph_results.py.
+3. Run `preprocess_midi.py -output_dir <path_to_save_output> <path_to_maestro_data>`, or run with `--help` for details. This will write pre-processed data into folder split into `train`, `val`, and `test` as per Maestro's recommendation.
+
+4. To train a model, run `train.py`. Use `--help` to see the tweakable parameters. See the results section for details on model performance. 
+
+5. After training models, you can evaluate them with `evaluate.py` and generate a MIDI piece with `generate.py`. To graph and compare results visually, use `graph_results.py`.
 
 For the most part, you can just leave most arguments at their default values. If you are using a different dataset location or other such things, you will need to specify that in the arguments. Beyond that, the average user does not have to worry about most of the arguments.
 
