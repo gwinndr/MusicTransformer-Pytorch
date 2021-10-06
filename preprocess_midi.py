@@ -43,6 +43,7 @@ def prep_midi(maestro_root, output_dir):
         mid         = os.path.join(maestro_root, piece["midi_filename"])
         split_type  = piece["split"]
         f_name      = mid.split("/")[-1] + ".pickle"
+        mid_name    = piece['canonical_title']
 
         if(split_type == "train"):
             o_file = os.path.join(train_dir, f_name)
@@ -58,9 +59,11 @@ def prep_midi(maestro_root, output_dir):
             return False
 
         prepped = midi_processor.encode_midi(mid)
+        
+        
 
         o_stream = open(o_file, "wb")
-        pickle.dump(prepped, o_stream)
+        pickle.dump((mid_name,prepped), o_stream)
         o_stream.close()
 
         total_count += 1
