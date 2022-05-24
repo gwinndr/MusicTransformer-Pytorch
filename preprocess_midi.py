@@ -89,6 +89,13 @@ def prep_custom_midi(custom_midi_root, output_dir, valid_p = 0.1, test_p = 0.2):
     test_dir = os.path.join(output_dir, "test")
     os.makedirs(test_dir, exist_ok=True)
     
+    print("Found", len(os.listdir(custom_midi_root)), "pieces")
+    print("Preprocessing custom data...")
+    total_count = 0
+    train_count = 0
+    val_count   = 0
+    test_count  = 0
+    
     for piece in os.listdir(custom_midi_root):
         #deciding whether the data should be part of train, valid or test dataset
         is_train = True if random.random() > valid_p else False
@@ -102,7 +109,7 @@ def prep_custom_midi(custom_midi_root, output_dir, valid_p = 0.1, test_p = 0.2):
             split_type = "test"
             
         mid         = os.path.join(custom_midi_root, piece)
-        f_name      = mid.split("/")[-1] + ".pickle"
+        f_name      = piece.split(".")[0] + ".pickle"
 
         if(split_type == "train"):
             o_file = os.path.join(train_dir, f_name)
@@ -113,7 +120,7 @@ def prep_custom_midi(custom_midi_root, output_dir, valid_p = 0.1, test_p = 0.2):
         elif(split_type == "test"):
             o_file = os.path.join(test_dir, f_name)
             test_count += 1
-
+        
         prepped = midi_processor.encode_midi(mid)
 
         o_stream = open(o_file, "wb")
@@ -122,7 +129,7 @@ def prep_custom_midi(custom_midi_root, output_dir, valid_p = 0.1, test_p = 0.2):
 
         total_count += 1
         if(total_count % 50 == 0):
-            print(total_count, "/", len(os.listdir(custom_midi_root))
+            print(total_count, "/", len(os.listdir(custom_midi_root)))
 
     print("Num Train:", train_count)
     print("Num Val:", val_count)
