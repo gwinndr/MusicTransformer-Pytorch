@@ -151,7 +151,7 @@ def parse_args():
 
     parser.add_argument("root", type=str, help="Root folder for the Maestro dataset or for custom data.")
     parser.add_argument("-output_dir", type=str, default="./dataset/e_piano", help="Output folder to put the preprocessed midi into.")
-    parser.add_argument("-custom_dataset", type=bool, default=False, help="Whether or not the specified root folder contains custom data.")
+    parser.add_argument("--custom_dataset", action="store_true", help="Whether or not the specified root folder contains custom data.")
 
     return parser.parse_args()
 
