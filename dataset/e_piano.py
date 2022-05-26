@@ -89,7 +89,7 @@ def process_midi(raw_mid, max_seq, random_seq):
     if(raw_len < full_seq):
         x[:raw_len]         = raw_mid
         tgt[:raw_len-1]     = raw_mid[1:]
-        tgt[raw_len]        = TOKEN_END
+        tgt[raw_len-1]      = TOKEN_END
     else:
         # Randomly selecting a range
         if(random_seq):
